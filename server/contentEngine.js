@@ -1,5 +1,5 @@
-const TelegramBot = require('node-telegram-bot-api');
-const { createPixPayment } = require('./pixGateway.js');
+import TelegramBot from 'node-telegram-bot-api';
+import { createPixPayment } from './pixGateway.js';
 
 const activeBots = new Map();
 const pendingPayments = new Map();
@@ -343,4 +343,4 @@ async function sendMessageToChat(botId, chatId, text) {
   }
 }
 
-module.exports = { startBot, stopBot, getActiveBots, sendGroupLink, sendMessageToChat, formatMoney };
+export { startBot, stopBot, getActiveBots, sendGroupLink, sendMessageToChat, formatMoney };

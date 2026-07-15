@@ -1,4 +1,4 @@
-const QRCode = require('qrcode');
+import QRCode from 'qrcode';
 
 function generatePixBRCode(pixKey, merchantName, merchantCity, amount, description, txId) {
   const merchantAccountInfo = `0014BR.GOV.BCB.PIX0136${pixKey}`;
@@ -127,4 +127,4 @@ async function createPixPayment(config, paymentData) {
   };
 }
 
-module.exports = { generatePixBRCode, generatePixQrCode, createPixPayment, crc16 };
+export { generatePixBRCode, generatePixQrCode, createPixPayment, crc16 };

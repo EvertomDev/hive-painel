@@ -1,13 +1,10 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createRequire } from 'module';
 import { getTelegramManager } from './server/telegramManager.js';
 import { getWhatsAppManager } from './server/whatsappManager.js';
-
-const require = createRequire(import.meta.url);
-const contentEngine = require('./server/contentEngine.js');
-const { generatePixQrCode } = require('./server/pixGateway.js');
+import * as contentEngine from './server/contentEngine.js';
+import { generatePixQrCode } from './server/pixGateway.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
