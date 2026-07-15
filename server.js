@@ -139,11 +139,17 @@ app.post('/api/whatsapp/logout', async (req, res) => {
   }
 });
 
+// Healthcheck para Railway
+app.get('/health', (req, res) => {
+  res.json({ ok: true, uptime: process.uptime(), memory: process.memoryUsage().rss });
+});
+
 // SPA fallback
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`Zeze Painel rodando em http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Zeze Painel rodando em http://0.0.0.0:${PORT}`);
+  console.log(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
 });

@@ -1,9 +1,61 @@
+import fs from 'fs';
 import pkg from 'whatsapp-web.js';
 import QRCode from 'qrcode';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 
 const { Client, LocalAuth } = pkg;
 
 const sessions = new Map();
+
+function createPuppeteerConfig() {
+  const isProd = process.env.NODE_ENV === 'production';
+  const headless = process.env.PUPPETEER_HEADLESS === 'false' ? false : (isProd ? true : 'new');
+
+  const args = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-blink-features=AutomationControlled',
+    '--disable-web-security',
+    '--disable-features=VizDisplayCompositor',
+    '--disable-default-apps',
+    '--disable-extensions',
+    '--disable-component-extensions-with-background-pages',
+    '--ignore-certificate-errors',
+    '--ignore-ssl-errors',
+    '--lang=en-US,en;q=0.9',
+    '--no-first-run',
+    '--no-default-browser-check',
+    '--disable-background-networking',
+    '--disable-sync',
+    '--disable-translate',
+    '--disable-hang-monitor',
+    '--disable-prompt-on-repost',
+    '--disable-client-side-phishing-detection',
+    '--disable-crash-reporter',
+    '--disable-ipc-flooding-protection',
+    '--disable-background-timer-throttling',
+    '--disable-renderer-backgrounding',
+  ];
+
+  if (process.env.PROXY_URL) {
+    args.push(`--proxy-server=${process.env.PROXY_URL}`);
+  }
+
+  return {
+    headless,
+    args,
+    defaultViewport: null,
+  };
+}
+
+function logError(context, err) {
+  console.error(`[WhatsApp][${context}]`, {
+    message: err?.message || err,
+    stack: err?.stack?.split('\n').slice(0, 3).join('\n'),
+    timestamp: new Date().toISOString(),
+  });
+}
 
 export function getWhatsAppManager() {
   return {
@@ -27,23 +79,36 @@ export function getWhatsAppManager() {
         };
         sessions.set(sessionId, session);
 
+        const puppeteerConfig = createPuppeteerConfig();
+
         const client = new Client({
           authStrategy: new LocalAuth({ dataPath: `./data/whatsapp-${sessionId}` }),
           puppeteer: {
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+            ...puppeteerConfig,
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
           },
+          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         });
         session.client = client;
 
         client.on('qr', async (qr) => {
           session.qr = await QRCode.toDataURL(qr);
           session.status = 'qr';
+
+          try {
+            const qrDir = './data/qr-codes';
+            if (!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
+            fs.writeFileSync(`${qrDir}/${sessionId}.html`, `<html><body style="display:flex;align-items:center;justify-content:center;height:100vh;background:#111"><img src="${session.qr}" /></body></html>`);
+          } catch (e) {
+            logError('qr-save', e);
+          }
+
           if (callbacks.onQr) callbacks.onQr(sessionId, session.qr);
           resolve({ ok: true, status: 'qr', qr: session.qr });
         });
 
         client.on('ready', () => {
+          console.log(`[WhatsApp][${sessionId}] Sessão pronta!`);
           session.ready = true;
           session.status = 'ready';
           session.info = { name: 'WhatsApp Session' };
@@ -51,18 +116,21 @@ export function getWhatsAppManager() {
         });
 
         client.on('authenticated', () => {
+          console.log(`[WhatsApp][${sessionId}] Autenticado com sucesso`);
           session.status = 'authenticated';
         });
 
         client.on('auth_failure', (msg) => {
+          console.error(`[WhatsApp][${sessionId}] Falha na autenticação:`, msg);
           session.status = 'auth_failure';
           sessions.delete(sessionId);
           if (callbacks.onError) callbacks.onError(sessionId, msg);
         });
 
-        client.on('disconnected', () => {
+        client.on('disconnected', (reason) => {
+          console.warn(`[WhatsApp][${sessionId}] Desconectado:`, reason);
           sessions.delete(sessionId);
-          if (callbacks.onDisconnect) callbacks.onDisconnect(sessionId);
+          if (callbacks.onDisconnect) callbacks.onDisconnect(sessionId, reason);
         });
 
         client.on('message_create', async (msg) => {
@@ -81,19 +149,24 @@ export function getWhatsAppManager() {
             session.messages.unshift(message);
             if (session.messages.length > 200) session.messages.pop();
             if (callbacks.onMessage) callbacks.onMessage(sessionId, message);
-          } catch (e) {}
+          } catch (e) {
+            logError('message_create', e);
+          }
         });
 
         client.initialize().catch(err => {
+          logError('initialize', err);
           sessions.delete(sessionId);
           resolve({ ok: false, error: err.message });
         });
 
+        const timeout = parseInt(process.env.WHATSAPP_TIMEOUT || '30000', 10);
         setTimeout(() => {
           if (session.status === 'connecting') {
+            console.warn(`[WhatsApp][${sessionId}] Timeout de conexão (${timeout}ms)`);
             resolve({ ok: true, status: 'connecting', qr: session.qr });
           }
-        }, 3000);
+        }, timeout);
       });
     },
     getStatus(sessionId) {
