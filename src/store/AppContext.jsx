@@ -28,7 +28,12 @@ const initialState = {
   flows: [
     { id: uid(), name: 'Fluxo Básico', type: 'basic', steps: 3 },
     { id: uid(), name: 'Fluxo Avançado', type: 'advanced', steps: 8 },
-  ]
+  ],
+  accounts: [
+    { id: uid(), name: 'Suporte Telegram', platform: 'telegram', identifier: '@suporte', photo: '', status: 'online', tags: ['suporte'], category: 'Suporte', notes: 'Conta principal de suporte', favorite: true, createdAt: today() },
+  ],
+  accountCategories: ['Suporte', 'Vendas', 'Marketing', 'Pessoal'],
+  accountFolders: ['Favoritos', 'Trabalho'],
 };
 
 function loadState() {
@@ -36,15 +41,18 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      return {
-        ...initialState,
-        ...parsed,
-        notifications: parsed.notifications || initialState.notifications,
-        gateways: parsed.gateways || initialState.gateways,
-        flows: parsed.flows || initialState.flows,
-        config: { ...initialState.config, ...(parsed.config || {}) },
-        user: { ...initialState.user, ...(parsed.user || {}) },
-      };
+        return {
+          ...initialState,
+          ...parsed,
+          notifications: parsed.notifications || initialState.notifications,
+          gateways: parsed.gateways || initialState.gateways,
+          flows: parsed.flows || initialState.flows,
+          accounts: parsed.accounts || initialState.accounts,
+          accountCategories: parsed.accountCategories || initialState.accountCategories,
+          accountFolders: parsed.accountFolders || initialState.accountFolders,
+          config: { ...initialState.config, ...(parsed.config || {}) },
+          user: { ...initialState.user, ...(parsed.user || {}) },
+        };
     }
   } catch (e) { console.error(e); }
   return initialState;
@@ -92,6 +100,16 @@ function reducer(state, action) {
       return { ...state, flows: [...state.flows, action.payload] };
     case 'DELETE_FLOW':
       return { ...state, flows: state.flows.filter(f => f.id !== action.payload) };
+    case 'ADD_ACCOUNT':
+      return { ...state, accounts: [...state.accounts, action.payload] };
+    case 'UPDATE_ACCOUNT':
+      return { ...state, accounts: state.accounts.map(a => a.id === action.payload.id ? { ...a, ...action.payload.data } : a) };
+    case 'DELETE_ACCOUNT':
+      return { ...state, accounts: state.accounts.filter(a => a.id !== action.payload) };
+    case 'TOGGLE_FAVORITE_ACCOUNT':
+      return { ...state, accounts: state.accounts.map(a => a.id === action.payload ? { ...a, favorite: !a.favorite } : a) };
+    case 'SET_ACCOUNT_CATEGORIES':
+      return { ...state, accountCategories: action.payload };
     case 'RESET_DATA':
       localStorage.removeItem(STORAGE_KEY);
       return { ...initialState, activities: [{ id: uid(), text: 'Dados resetados', type: 'warning', time: new Date().toISOString() }] };
