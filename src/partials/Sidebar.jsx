@@ -1,12 +1,11 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useMemo } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useApp } from '../store/AppContext';
 
-const menu = [
+const menuItems = [
   {
-    path: '/',
-    label: 'Dashboard',
-    icon: (
+    path: '/', label: 'Dashboard', badge: null, icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
         <rect x="14" y="14" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" />
@@ -14,27 +13,21 @@ const menu = [
     ),
   },
   {
-    path: '/bots',
-    label: 'Bots',
-    icon: (
+    path: '/bots', label: 'Bots', badge: 'bots', icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="11" width="18" height="10" rx="2" /><circle cx="12" cy="5" r="2" /><path d="M12 7v4" />
       </svg>
     ),
   },
   {
-    path: '/vendas',
-    label: 'Vendas',
-    icon: (
+    path: '/vendas', label: 'Vendas', badge: 'sales', icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
       </svg>
     ),
   },
   {
-    path: '/clientes',
-    label: 'Clientes',
-    icon: (
+    path: '/clientes', label: 'Clientes', badge: 'clients', icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
         <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
@@ -42,18 +35,14 @@ const menu = [
     ),
   },
   {
-    path: '/gateways',
-    label: 'Gateways',
-    icon: (
+    path: '/gateways', label: 'Gateways', badge: 'gateways', icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="5" width="20" height="14" rx="2" /><circle cx="7" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" />
       </svg>
     ),
   },
   {
-    path: '/fluxos',
-    label: 'Fluxos',
-    icon: (
+    path: '/fluxos', label: 'Fluxos', badge: 'flows', icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
         <rect x="14" y="14" width="7" height="7" rx="1" /><path d="M10 7h3v3" /><path d="M10 17h3v-3" />
@@ -61,27 +50,21 @@ const menu = [
     ),
   },
   {
-    path: '/contas',
-    label: 'Contas',
-    icon: (
+    path: '/contas', label: 'Contas', badge: 'accounts', icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
       </svg>
     ),
   },
   {
-    path: '/mensagens',
-    label: 'Mensagens',
-    icon: (
+    path: '/mensagens', label: 'Mensagens', badge: 'messages', icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
       </svg>
     ),
   },
   {
-    path: '/configuracoes',
-    label: 'Configurações',
-    icon: (
+    path: '/configuracoes', label: 'Configurações', badge: null, icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3" />
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
@@ -91,6 +74,19 @@ const menu = [
 ];
 
 function Sidebar({ sidebarOpen, setSidebarOpen }) {
+  const { state } = useApp();
+  const location = useLocation();
+
+  const badges = useMemo(() => ({
+    bots: state.bots.filter(b => b.status === 'active').length,
+    sales: state.sales.filter(s => s.status === 'pending').length,
+    clients: state.clients.length,
+    gateways: state.gateways.filter(g => !g.connected).length,
+    flows: state.flows.length,
+    accounts: state.accounts.length,
+    messages: state.accounts.filter(a => ['telegram', 'whatsapp'].includes(a.platform)).length,
+  }), [state]);
+
   return (
     <>
       <div
@@ -112,28 +108,43 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
         <div className="px-3 space-y-1">
           <div className="text-xs font-semibold text-muted-foreground uppercase px-3 mb-2">Menu</div>
-          {menu.map((item) => (
-            <NavLink
-              key={item.path}
-              end={item.path !== '/' ? true : false}
-              to={item.path}
-              onClick={() => setSidebarOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-muted hover:text-accent-foreground'
-                }`
-              }
-            >
-              <span className="mr-3 shrink-0">{item.icon}</span>
-              {item.label}
-            </NavLink>
-          ))}
+          {menuItems.map((item) => {
+            const badge = item.badge ? badges[item.badge] : null;
+            return (
+              <NavLink
+                key={item.path}
+                end={item.path !== '/' ? true : false}
+                to={item.path}
+                onClick={() => setSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-muted hover:text-accent-foreground'
+                  }`
+                }
+              >
+                <span className="mr-3 shrink-0">{item.icon}</span>
+                <span className="flex-1 truncate">{item.label}</span>
+                {badge !== null && badge > 0 && (
+                  <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
+                    location.pathname === item.path
+                      ? 'bg-primary-foreground/20 text-primary-foreground'
+                      : 'bg-primary/10 text-primary'
+                  }`}>
+                    {badge > 99 ? '99+' : badge}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
         </div>
 
         <div className="mt-auto px-4 py-4 border-t border-border">
-          <div className="text-xs text-muted-foreground">Zeze Painel 2026</div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Zeze Painel 2026</span>
+            <span className="w-2 h-2 rounded-full bg-chart-1"></span>
+          </div>
         </div>
       </div>
     </>
