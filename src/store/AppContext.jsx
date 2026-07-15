@@ -154,7 +154,9 @@ function reducer(state, action) {
     case 'TOGGLE_GATEWAY':
       return { ...state, gateways: state.gateways.map(g => g.name === action.payload ? { ...g, connected: !g.connected } : g) };
     case 'ADD_FLOW':
-      return { ...state, flows: [...state.flows, action.payload] };
+      return { ...state, flows: [...state.flows, { ...action.payload, criadoEm: new Date().toISOString() }] };
+    case 'UPDATE_FLOW':
+      return { ...state, flows: state.flows.map(f => f.id === action.payload.id ? { ...f, ...action.payload.data } : f) };
     case 'DELETE_FLOW':
       return { ...state, flows: state.flows.filter(f => f.id !== action.payload) };
     case 'ADD_ACCOUNT':
