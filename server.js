@@ -173,7 +173,7 @@ app.post('/api/content/start-bot', async (req, res) => {
       botSessions.set(`bot_${id}`, { running: true, name, token });
     }
 
-    res.json(result);
+    res.json({ ok: result.ok, info: result.info });
   } catch (error) {
     res.status(400).json({ ok: false, error: error.message });
   }
