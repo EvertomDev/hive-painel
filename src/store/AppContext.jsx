@@ -111,6 +111,10 @@ function reducer(state, action) {
       return { ...state, members: state.members.map(m => m.id === action.payload.id ? { ...m, ...action.payload.data } : m) };
     case 'DELETE_MEMBER':
       return { ...state, members: state.members.filter(m => m.id !== action.payload) };
+    case 'ADD_GATEWAY':
+      return { ...state, gateways: [...state.gateways, action.payload] };
+    case 'REMOVE_GATEWAY':
+      return { ...state, gateways: state.gateways.filter(g => g.name !== action.payload) };
     case 'SET_PIX_CONFIG':
       return { ...state, pixConfig: { ...state.pixConfig, ...action.payload } };
     case 'HYDRATE':

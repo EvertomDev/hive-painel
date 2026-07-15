@@ -7,10 +7,19 @@ import { AppProvider, useApp } from './store/AppContext';
 import Layout from './partials/Layout';
 import Dashboard from './pages/Dashboard';
 import Bots from './pages/Bots';
-import Sales from './pages/Sales';
+import Analises from './pages/Analises';
+import Financeiro from './pages/Financeiro';
 import Clients from './pages/Clients';
+import Comunidade from './pages/Comunidade';
+import Afiliado from './pages/Afiliado';
+import Automacoes from './pages/Automacoes';
+import Ferramentas from './pages/Ferramentas';
 import Gateways from './pages/Gateways';
 import Flows from './pages/Flows';
+import Trackeamento from './pages/Trackeamento';
+import Checkout from './pages/Checkout';
+import BioLink from './pages/BioLink';
+import Webhooks from './pages/Webhooks';
 import Accounts from './pages/Accounts';
 import Messages from './pages/Messages';
 import Settings from './pages/Settings';
@@ -37,18 +46,27 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="bots" element={<Bots />} />
-        <Route path="vendas" element={<Sales />} />
-        <Route path="clientes" element={<Clients />} />
-        <Route path="gateways" element={<Gateways />} />
-        <Route path="fluxos" element={<Flows />} />
-        <Route path="contas" element={<Accounts />} />
-        <Route path="mensagens" element={<Messages />} />
-        <Route path="configuracoes" element={<Settings />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="bots" element={<Bots />} />
+          <Route path="analises" element={<Analises />} />
+          <Route path="financeiro" element={<Financeiro />} />
+          <Route path="clientes" element={<Clients />} />
+          <Route path="comunidade" element={<Comunidade />} />
+          <Route path="afiliado" element={<Afiliado />} />
+          <Route path="automacoes" element={<Automacoes />} />
+          <Route path="ferramentas" element={<Ferramentas />} />
+          <Route path="gateways" element={<Gateways />} />
+          <Route path="fluxos" element={<Flows />} />
+          <Route path="trackeamento" element={<Trackeamento />} />
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="biolink" element={<BioLink />} />
+          <Route path="webhooks" element={<Webhooks />} />
+          <Route path="contas" element={<Accounts />} />
+          <Route path="mensagens" element={<Messages />} />
+          <Route path="configuracoes" element={<Settings />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
     </Routes>
   );
 }
