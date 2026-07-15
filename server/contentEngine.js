@@ -2,36 +2,80 @@ import TelegramBot from 'node-telegram-bot-api';
 import { createPixPayment } from './pixGateway.js';
 
 const activeBots = new Map();
-const pendingPayments = new Map();
 const paymentConfirmations = new Map();
 
 function formatMoney(value) {
   return 'R$ ' + Number(value).toFixed(2).replace('.', ',');
 }
 
-function getGroupsCatalogMessage(groups, botName) {
-  if (!groups || groups.length === 0) {
-    return `📦 *Catálogo - ${botName}*\n\nNenhum grupo disponível no momento.`;
-  }
+function mainMenu(firstName, botName) {
+  return {
+    text: `🌟 *Olá, ${firstName}!*\nBem-vindo ao *${botName}* 🔞\n\nAqui você encontra grupos exclusivos com conteúdo premium. Escolha uma opção abaixo:`,
+    keyboard: [
+      [{ text: '📦 Ver Catálogo', callback_data: 'catalogo' }],
+      [{ text: '💳 Como Comprar', callback_data: 'como_comprar' }],
+      [{ text: '❓ Ajuda', callback_data: 'ajuda' }, { text: '📞 Suporte', callback_data: 'suporte' }],
+    ],
+  };
+}
 
-  let msg = `🔞 *${botName} - Acesso Exclusivo*\n\n` +
-    `Escolha um grupo para entrar 👇\n\n` +
-    `─ • ✦ ✦ • ─────────────────\n`;
+function catalogMessage(groups, botName) {
+  let text = `📦 *Catálogo ${botName}*\n\nConfira nossos grupos VIP 👇\n\n`;
+  const keyboard = [];
 
   groups.forEach((g, i) => {
-    msg += `\n${i + 1}. *${g.name}* ${g.preview || ''}\n`;
-    msg += `   📝 ${g.description || 'Grupo exclusivo com conteúdo premium'}\n`;
-    msg += `   👥 ${g.members || 0} membros\n`;
-    msg += `   💰 *${formatMoney(g.price)}* — acesso vitalício\n`;
-    msg += `   🔹 /comprar_${g.id}\n`;
+    text += `${i + 1}. *${g.name}* ${g.preview || ''}\n`;
+    text += `   👥 ${g.members || 0} membros  |  💰 *${formatMoney(g.price)}*\n\n`;
+    keyboard.push([{ text: `🛒 Comprar ${g.name} — ${formatMoney(g.price)}`, callback_data: `comprar_${g.id}` }]);
   });
 
-  msg += `\n─ • ✦ ✦ • ─────────────────\n\n` +
-    `💡 Use /comprar_ID para adquirir acesso.\n` +
-    `📞 /suporte — Dúvidas?\n\n` +
-    `✨ *Zeze GroupSeller*`;
+  text += `\n───────────────\n✅ Pagamento 100% seguro via PIX`;
+  keyboard.push([{ text: '🔙 Voltar ao Menu', callback_data: 'menu' }]);
 
-  return msg;
+  return { text, keyboard };
+}
+
+function comoComprarMessage() {
+  return {
+    text: `💳 *Como Comprar Acesso*\n\n` +
+      `1️⃣ Escolha um grupo no catálogo\n` +
+      `2️⃣ Clique em *Comprar* no grupo desejado\n` +
+      `3️⃣ Faça o PIX via QR Code\n` +
+      `4️⃣ Envie o *comprovante* aqui\n` +
+      `5️⃣ Receba o link do grupo! 🎉\n\n` +
+      `🔒 *100% discreto e seguro*`,
+    keyboard: [[{ text: '📦 Ver Catálogo', callback_data: 'catalogo' }], [{ text: '🔙 Menu', callback_data: 'menu' }]],
+  };
+}
+
+function ajudaMessage() {
+  return {
+    text: `❓ *Dúvidas Frequentes*\n\n` +
+      `🔹 *Como acesso o grupo?*\n` +
+      `Após confirmar o pagamento, enviamos o link automático.\n\n` +
+      `🔹 *Quanto tempo dura?*\n` +
+      `Acesso vitalício ao grupo.\n\n` +
+      `🔹 *É anônimo?*\n` +
+      `Sim! 100% discreto.\n\n` +
+      `🔹 *Perdi o link?*\n` +
+      `Clique em "Meu Pedido" no menu para reenviar.`,
+    keyboard: [[{ text: '📦 Catálogo', callback_data: 'catalogo' }], [{ text: '🔙 Menu', callback_data: 'menu' }]],
+  };
+}
+
+function suporteMessage() {
+  return {
+    text: `📞 *Suporte*\n\nDigite sua mensagem abaixo.\nResponderemos em breve!`,
+    keyboard: [[{ text: '🔙 Menu', callback_data: 'menu' }]],
+  };
+}
+
+function sendWithKeyboard(bot, chatId, { text, keyboard }, extra = {}) {
+  return bot.sendMessage(chatId, text, {
+    parse_mode: 'Markdown',
+    reply_markup: { inline_keyboard: keyboard },
+    ...extra,
+  });
 }
 
 async function startBot(botConfig, options = {}) {
@@ -53,139 +97,134 @@ async function startBot(botConfig, options = {}) {
   const botState = { bot, waitingContact: new Map(), waitingSupport: new Map() };
   activeBots.set(id, botState);
 
+  const getCatalog = () => {
+    const allGroups = typeof getGroups === 'function' ? getGroups() : groups;
+    return catalogMessage(allGroups, name);
+  };
+
+  // /start command
   bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     const firstName = msg.from.first_name || 'Cliente';
 
-    let welcome = `🔞 *Bem-vindo(a), ${firstName}!*\n\n` +
-      `Você está no *${name}* — acesso vip a grupos exclusivos.🔥\n\n` +
-      `📌 *Grupos disponíveis:*\n` +
-      `📦 /catalogo — Ver todos os grupos\n` +
-      `💳 /comprar — Como comprar acesso\n` +
-      `❓ /ajuda — Dúvidas frequentes\n` +
-      `📞 /suporte — Falar com atendente\n` +
-      `🔞 +18 — Conteúdo adulto`;
-
     if (welcomeMessage) {
-      welcome = welcomeMessage + `\n\n📦 /catalogo\n💳 /comprar\n📞 /suporte`;
+      await bot.sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
     }
 
-    await bot.sendMessage(chatId, welcome, { parse_mode: 'Markdown' });
+    const menu = mainMenu(firstName, name);
+    await sendWithKeyboard(bot, chatId, menu);
   });
 
-  bot.onText(/\/catalogo/, async (msg) => {
-    const chatId = msg.chat.id;
-    const allGroups = typeof getGroups === 'function' ? getGroups() : groups;
-    await bot.sendMessage(chatId, getGroupsCatalogMessage(allGroups, name), { parse_mode: 'Markdown' });
-  });
+  // Callback queries (button clicks)
+  bot.on('callback_query', async (query) => {
+    const chatId = query.message.chat.id;
+    const data = query.data;
+    const msgId = query.message.message_id;
+    const firstName = query.from.first_name || 'Cliente';
 
-  bot.onText(/\/comprar/, async (msg) => {
-    const chatId = msg.chat.id;
-    await bot.sendMessage(chatId,
-      `💳 *Como Comprar Acesso*\n\n` +
-      `1️⃣ Escolha um grupo no /catalogo\n` +
-      `2️⃣ Use /comprar_ID (ex: /comprar_grupo123)\n` +
-      `3️⃣ Faça o PIX com QR Code\n` +
-      `4️⃣ Envie o *comprovante* aqui\n` +
-      `5️⃣ Receba o link do grupo! 🎉\n\n` +
-      `🔒 *100% discreto e seguro*`,
-      { parse_mode: 'Markdown' }
-    );
-  });
+    await bot.answerCallbackQuery(query.id);
 
-  bot.onText(/\/comprar_(.+)/, async (msg, match) => {
-    const chatId = msg.chat.id;
-    const groupId = match[1];
-    const allGroups = typeof getGroups === 'function' ? getGroups() : groups;
-    const group = allGroups.find(g => g.id === groupId);
-
-    if (!group) {
-      await bot.sendMessage(chatId, '❌ Grupo não encontrado. Use /catalogo.');
+    if (data === 'menu') {
+      const menu = mainMenu(firstName, name);
+      await bot.editMessageText(menu.text, {
+        chat_id: chatId, message_id: msgId,
+        parse_mode: 'Markdown',
+        reply_markup: { inline_keyboard: menu.keyboard },
+      });
       return;
     }
 
-    const contactKey = `${chatId}_${groupId}`;
-    botState.waitingContact.set(contactKey, { group, step: 'awaiting_name' });
+    if (data === 'catalogo') {
+      const cat = getCatalog();
+      await bot.editMessageText(cat.text, {
+        chat_id: chatId, message_id: msgId,
+        parse_mode: 'Markdown',
+        reply_markup: { inline_keyboard: cat.keyboard },
+      });
+      return;
+    }
 
-    await bot.sendMessage(chatId,
-      `🛒 *${group.name}*\n\n` +
-      `📝 ${group.description}\n` +
-      `👥 ${group.members || 0} membros\n` +
-      `💰 *Valor:* ${formatMoney(group.price)}\n\n` +
-      `Para continuar, me diga seu *nome*:`,
-      { parse_mode: 'Markdown' }
-    );
-  });
+    if (data === 'como_comprar') {
+      const c = comoComprarMessage();
+      await bot.editMessageText(c.text, {
+        chat_id: chatId, message_id: msgId,
+        parse_mode: 'Markdown',
+        reply_markup: { inline_keyboard: c.keyboard },
+      });
+      return;
+    }
 
-  bot.onText(/\/suporte/, async (msg) => {
-    const chatId = msg.chat.id;
-    botState.waitingSupport.set(chatId, true);
-    await bot.sendMessage(chatId,
-      `📞 *Suporte*\n\n` +
-      `Digite sua mensagem abaixo. Responderemos em breve!\n\n` +
-      `Ou fale direto: @zeze_suporte`,
-      { parse_mode: 'Markdown' }
-    );
-  });
+    if (data === 'ajuda') {
+      const a = ajudaMessage();
+      await bot.editMessageText(a.text, {
+        chat_id: chatId, message_id: msgId,
+        parse_mode: 'Markdown',
+        reply_markup: { inline_keyboard: a.keyboard },
+      });
+      return;
+    }
 
-  bot.onText(/\/ajuda/, async (msg) => {
-    const chatId = msg.chat.id;
-    await bot.sendMessage(chatId,
-      `❓ *Dúvidas*\n\n` +
-      `🔹 *Como acesso o grupo?*\n` +
-      `Após confirmar o pagamento, enviamos o link automaticamente.\n\n` +
-      `🔹 *Quanto tempo dura?*\n` +
-      `Acesso vitalício ao grupo.\n\n` +
-      `🔹 *É anônimo?*\n` +
-      `Sim! 100% discreto.\n\n` +
-      `🔹 *Perdi o link?*\n` +
-      `Use /meupedido para reenviar.`,
-      { parse_mode: 'Markdown' }
-    );
-  });
+    if (data === 'suporte') {
+      botState.waitingSupport.set(chatId, true);
+      const s = suporteMessage();
+      await bot.editMessageText(s.text, {
+        chat_id: chatId, message_id: msgId,
+        parse_mode: 'Markdown',
+        reply_markup: { inline_keyboard: s.keyboard },
+      });
+      return;
+    }
 
-  bot.onText(/\/meupedido/, async (msg) => {
-    const chatId = msg.chat.id;
-    const conf = paymentConfirmations.get(String(chatId));
-    if (conf && conf.groupLink) {
+    if (data.startsWith('comprar_')) {
+      const groupId = data.replace('comprar_', '');
+      const allGroups = typeof getGroups === 'function' ? getGroups() : groups;
+      const group = allGroups.find(g => g.id === groupId);
+
+      if (!group) {
+        await bot.sendMessage(chatId, '❌ Grupo não encontrado.');
+        return;
+      }
+
+      const contactKey = `${chatId}_${groupId}`;
+      botState.waitingContact.set(contactKey, { group, step: 'awaiting_name' });
+
       await bot.sendMessage(chatId,
-        `🔗 *Seu Link de Acesso:*\n\n` +
-        `${conf.groupLink}\n\n` +
-        `👥 Clique no link para entrar no grupo!`,
-        { parse_mode: 'Markdown' }
+        `🛒 *${group.name}*\n\n` +
+        `👥 ${group.members || 0} membros\n` +
+        `💰 *${formatMoney(group.price)}*\n\n` +
+        `Para continuar, me informe seu *nome*:`,
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [[{ text: '🔙 Cancelar', callback_data: 'catalogo' }]],
+          },
+        }
       );
-    } else {
-      await bot.sendMessage(chatId, '❌ Nenhum pedido confirmado encontrado. Use /catalogo para comprar.');
+      return;
     }
   });
 
+  // Regular messages (name, contact, payment proof, support)
   bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     if (!msg.text || msg.text.startsWith('/')) {
       if ((msg.photo || msg.document) && !msg.text?.startsWith('/')) {
-        // Payment proof received
         const conf = paymentConfirmations.get(String(chatId));
         if (conf && conf.status === 'pending') {
           conf.status = 'proof_sent';
           if (typeof onPaymentConfirm === 'function') {
             onPaymentConfirm({
-              chatId: String(chatId),
-              name: msg.from.first_name,
-              username: msg.from.username,
-              groupId: conf.groupId,
-              groupName: conf.groupName,
-              value: conf.value,
-              botId: id,
-              botName: name,
+              chatId: String(chatId), name: msg.from.first_name, username: msg.from.username,
+              groupId: conf.groupId, groupName: conf.groupName, value: conf.value,
+              botId: id, botName: name,
             });
           }
 
           await bot.sendMessage(chatId,
             `✅ *Comprovante Recebido!*\n\n` +
             `Estamos verificando seu pagamento.\n` +
-            `Assim que confirmarmos, enviaremos o link do grupo! 🎉\n\n` +
-            `💰 /meupedido — Ver status`,
-            { parse_mode: 'Markdown' }
+            `Assim que confirmarmos, enviaremos o link do grupo! 🎉`,
+            { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [[{ text: '📦 Catálogo', callback_data: 'catalogo' }]] } }
           );
           return;
         }
@@ -193,13 +232,16 @@ async function startBot(botConfig, options = {}) {
       return;
     }
 
-    // Check if waiting for contact info
+    // Waiting for contact info (name → contact)
     for (const [key, data] of botState.waitingContact) {
       if (key.startsWith(String(chatId))) {
         if (data.step === 'awaiting_name') {
           data.customerName = msg.text;
           data.step = 'awaiting_contact';
-          await bot.sendMessage(chatId, '📱 Agora informe seu *WhatsApp* ou @username do Telegram:', { parse_mode: 'Markdown' });
+          await bot.sendMessage(chatId,
+            '📱 Agora informe seu *WhatsApp* ou @username do Telegram:',
+            { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [[{ text: '🔙 Cancelar', callback_data: 'catalogo' }]] } }
+          );
           return;
         } else if (data.step === 'awaiting_contact') {
           data.customerContact = msg.text;
@@ -211,66 +253,54 @@ async function startBot(botConfig, options = {}) {
           let payment;
           try {
             payment = await createPixPayment(pixCfg, {
-              productName: data.group.name,
-              productPrice: data.group.price,
-              customerName: data.customerName,
-              paymentId,
+              productName: data.group.name, productPrice: data.group.price,
+              customerName: data.customerName, paymentId,
             });
           } catch (e) {
             payment = {
-              status: 'pending',
-              qrCodeText: 'Falha ao gerar QR Code',
-              pixKey: pixCfg.pixKey || 'zeze@pix.com',
-              total: data.group.price,
-              paymentId,
-              gateway: 'static',
-              instructions: `💳 PIX\n\nValor: ${formatMoney(data.group.price)}\nChave: ${pixCfg.pixKey || 'zeze@pix.com'}`
+              status: 'pending', pixKey: pixCfg.pixKey || 'zeze@pix.com',
+              total: data.group.price, paymentId, gateway: 'static',
+              instructions: `💳 PIX\n\nValor: ${formatMoney(data.group.price)}\nChave: ${pixCfg.pixKey || 'zeze@pix.com'}`,
             };
           }
 
           const orderData = {
-            botId: id,
-            botName: name,
-            groupId: data.group.id,
-            groupName: data.group.name,
-            value: data.group.price,
-            customerName: data.customerName,
-            customerContact: data.customerContact,
-            chatId: String(chatId),
-            status: 'pending',
-            paymentId,
-            createdAt: new Date().toISOString(),
+            botId: id, botName: name, groupId: data.group.id, groupName: data.group.name,
+            value: data.group.price, customerName: data.customerName,
+            customerContact: data.customerContact, chatId: String(chatId),
+            status: 'pending', paymentId, createdAt: new Date().toISOString(),
           };
 
-          if (typeof onOrder === 'function') {
-            onOrder(orderData);
-          }
+          if (typeof onOrder === 'function') onOrder(orderData);
 
           paymentConfirmations.set(String(chatId), {
-            groupId: data.group.id,
-            groupName: data.group.name,
-            value: data.group.price,
-            status: 'pending',
-            groupLink: data.group.inviteLink,
+            groupId: data.group.id, groupName: data.group.name,
+            value: data.group.price, status: 'pending', groupLink: data.group.inviteLink,
           });
-
-          let msgText = `✅ *Pedido Registrado!*\n\n` +
-            `Grupo: ${data.group.name}\n` +
-            `Valor: ${formatMoney(data.group.price)}\n\n`;
 
           if (payment.qrCodeDataUrl) {
             await bot.sendPhoto(chatId, payment.qrCodeDataUrl, {
-              caption: `📱 *Escaneie o QR Code* para pagar\n\nValor: ${formatMoney(data.group.price)}`,
-              parse_mode: 'Markdown'
+              caption: `💳 *Pagamento — ${formatMoney(data.group.price)}*\n\nEscaneie o QR Code com seu banco`,
+              parse_mode: 'Markdown',
             });
-            msgText += `💳 *Ou copie o código PIX abaixo:*\n\`${payment.qrCodeText}\`\n\n`;
+            await bot.sendMessage(chatId,
+              `📋 *Ou copie o código PIX:*\n\`${payment.qrCodeText}\`\n\n📌 Depois de pagar, clique em "Enviei o Comprovante"`,
+              {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                  inline_keyboard: [
+                    [{ text: '✅ Enviei o Comprovante', callback_data: 'menu' }],
+                    [{ text: '📦 Catálogo', callback_data: 'catalogo' }],
+                  ],
+                },
+              }
+            );
           } else {
-            msgText += `${payment.instructions}\n\n`;
+            await bot.sendMessage(chatId,
+              `${payment.instructions}\n\n📌 Após pagar, envie o comprovante aqui.`,
+              { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [[{ text: '📦 Catálogo', callback_data: 'catalogo' }]] } }
+            );
           }
-
-          msgText += `📌 *Após pagar, envie o comprovante aqui.*`;
-
-          await bot.sendMessage(chatId, msgText, { parse_mode: 'Markdown' });
 
           botState.waitingContact.delete(key);
           return;
@@ -279,7 +309,9 @@ async function startBot(botConfig, options = {}) {
     }
 
     if (botState.waitingSupport.has(chatId)) {
-      await bot.sendMessage(chatId, '📩 Mensagem recebida! Responderemos em breve.');
+      await bot.sendMessage(chatId, '📩 Mensagem recebida! Responderemos em breve.',
+        { reply_markup: { inline_keyboard: [[{ text: '🔙 Menu', callback_data: 'menu' }]] } }
+      );
       botState.waitingSupport.delete(chatId);
       if (typeof onContact === 'function') {
         onContact({ chatId, name: msg.from.first_name, username: msg.from.username, message: msg.text, botId: id, botName: name });
@@ -292,7 +324,7 @@ async function startBot(botConfig, options = {}) {
     console.error(`[Bot ${name}] Polling error:`, err.message);
   });
 
-  return { ok: true, bot, info: { id, name } };
+  return { ok: true, info: { id, name } };
 }
 
 function stopBot(botId) {
@@ -319,11 +351,20 @@ async function sendGroupLink(botId, chatId, inviteLink) {
   try {
     await state.bot.sendMessage(chatId,
       `🎉 *Pagamento Confirmado!*\n\n` +
-      `✅ Seu acesso ao grupo foi liberado!\n\n` +
-      `👇 *Clique no link para entrar:*\n` +
+      `✅ Seu acesso foi liberado!\n\n` +
+      `👇 *Clique para entrar no grupo:*\n` +
       `${inviteLink}\n\n` +
       `🔥 Bem-vindo(a) ao clube VIP!`,
-      { parse_mode: 'Markdown', disable_web_page_preview: true }
+      {
+        parse_mode: 'Markdown',
+        disable_web_page_preview: true,
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '👥 Entrar no Grupo', url: inviteLink }],
+            [{ text: '📦 Ver Mais Grupos', callback_data: 'catalogo' }],
+          ],
+        },
+      }
     );
     paymentConfirmations.set(String(chatId), { groupId: null, groupName: null, value: null, status: 'confirmed', groupLink: inviteLink });
     return { ok: true };

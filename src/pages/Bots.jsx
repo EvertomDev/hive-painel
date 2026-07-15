@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../store/AppContext';
 import { PageTransition, AnimatedCard, AnimatedButton } from '../components/ui/AnimatedContainer';
-import { Loader2, Bot, Users, DollarSign, Settings, ShoppingCart, QrCode, Copy, Check, ExternalLink, Trash2, Play, Square, Send, RefreshCw } from 'lucide-react';
+import { Loader2, Bot, Users, DollarSign, Settings, ShoppingCart, QrCode, Copy, Check, ExternalLink, Trash2, Play, Square, Send, RefreshCw, CreditCard, Shield, Info } from 'lucide-react';
 
 const TABS = [
   { key: 'bots', label: 'Bots', icon: Bot },
@@ -556,42 +556,111 @@ function Bots() {
         {/* Tab: PIX Config */}
         {tab === 'pix' && (
           <div>
-            <h2 className="text-lg font-bold text-card-foreground mb-4">Configuração PIX</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-card-foreground">Configuração de Pagamentos</h2>
+              <a href="/gateways" className="text-sm text-primary hover:underline flex items-center gap-1"><Settings size={14} /> Gerenciar Gateways</a>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <AnimatedCard className="bg-card rounded-xl border border-border p-6">
-                <h3 className="font-bold text-card-foreground mb-4 flex items-center gap-2"><QrCode size={18} /> PIX Estático</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-card-foreground mb-1">Chave PIX (CPF/CNPJ/Email/Telefone)</label>
-                    <input value={state.pixConfig.pixKey} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { pixKey: e.target.value } })}
-                      className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="zeze@pix.com" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <AnimatedCard className="bg-card rounded-xl border border-border p-6">
+                  <h3 className="font-bold text-card-foreground mb-4 flex items-center gap-2"><QrCode size={18} /> Gateway PIX Ativo</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-card-foreground mb-1">Gateway para receber pagamentos</label>
+                      <select value={state.pixConfig.gateway || 'static'} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { gateway: e.target.value } })}
+                        className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none">
+                        <option value="static">PIX Estático (QR Code local)</option>
+                        {state.gateways.filter(g => g.type.includes('PIX')).map(g => (
+                          <option key={g.name} value={g.name.toLowerCase().replace(/\s+/g, '_')}>
+                            {g.name} {g.connected ? '✅' : '❌'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-card-foreground mb-1">Chave PIX</label>
+                      <input value={state.pixConfig.pixKey} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { pixKey: e.target.value } })}
+                        className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="CPF, CNPJ, email ou telefone" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-card-foreground mb-1">Nome do Titular</label>
+                      <input value={state.pixConfig.merchantName} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { merchantName: e.target.value } })}
+                        className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="Zeze Content" />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-card-foreground mb-1">Nome do Titular</label>
-                    <input value={state.pixConfig.merchantName} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { merchantName: e.target.value } })}
-                      className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="Zeze Content" />
-                  </div>
-                  <p className="text-xs text-muted-foreground">QR Code PIX gerado automaticamente para cada venda.</p>
-                </div>
-              </AnimatedCard>
+                </AnimatedCard>
 
-              <AnimatedCard className="bg-card rounded-xl border border-border p-6">
-                <h3 className="font-bold text-card-foreground mb-4">Mercado Pago (opcional)</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-card-foreground mb-1">Access Token</label>
-                    <input value={state.pixConfig.mercadopagoToken} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { mercadopagoToken: e.target.value } })}
-                      className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="APP_USR-..." />
+                <AnimatedCard className="bg-card rounded-xl border border-border p-6">
+                  <h3 className="font-bold text-card-foreground mb-4 flex items-center gap-2"><CreditCard size={18} /> Gateways Disponíveis</h3>
+                  {state.gateways.filter(g => g.type.includes('PIX')).length === 0 ? (
+                    <div className="text-center py-6">
+                      <p className="text-sm text-muted-foreground mb-3">Nenhum gateway PIX configurado.</p>
+                      <a href="/gateways" className="text-sm text-primary hover:underline">Configurar gateways →</a>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {state.gateways.filter(g => g.type.includes('PIX')).map(g => (
+                        <div key={g.name} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
+                          <div className="flex items-center gap-3">
+                            <Shield size={18} className={g.connected ? 'text-chart-1' : 'text-muted-foreground'} />
+                            <div>
+                              <span className="text-sm font-medium text-card-foreground">{g.name}</span>
+                              <span className="text-xs text-muted-foreground ml-2">{g.type}</span>
+                            </div>
+                          </div>
+                          <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${g.connected ? 'bg-chart-1/15 text-chart-1' : 'bg-muted text-muted-foreground'}`}>
+                            {g.connected ? 'Conectado' : 'Desconectado'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </AnimatedCard>
+              </div>
+
+              <div className="space-y-4">
+                <AnimatedCard className="bg-card rounded-xl border border-border p-6">
+                  <h3 className="font-bold text-card-foreground mb-3 flex items-center gap-2"><Info size={18} /> Status Pix</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Gateway Ativo:</span>
+                      <span className="text-card-foreground font-medium">
+                        {state.pixConfig.gateway === 'static' ? 'QR Code Local' : state.pixConfig.gateway}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Chave PIX:</span>
+                      <span className="text-card-foreground font-medium text-xs truncate max-w-[140px]">{state.pixConfig.pixKey}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Vendas via Bot:</span>
+                      <span className="text-card-foreground font-medium">{state.orders.length}</span>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground mt-2">
+                      💡 Configure a chave PIX correta e escolha um gateway conectado para receber pagamentos automaticamente.
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-card-foreground mb-1">Email da Conta</label>
-                    <input value={state.pixConfig.mercadopagoEmail} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { mercadopagoEmail: e.target.value } })}
-                      className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="email@exemplo.com" />
-                  </div>
-                  <p className="text-xs text-muted-foreground">Conecte com Mercado Pago para QR Code dinâmico com confirmação automática.</p>
-                </div>
-              </AnimatedCard>
+                </AnimatedCard>
+
+                <AnimatedCard className="bg-card rounded-xl border border-border p-6">
+                  <h3 className="font-bold text-card-foreground mb-3">Últimas Transações</h3>
+                  {state.orders.filter(o => o.status === 'pending' || o.status === 'approved').length === 0 ? (
+                    <p className="text-xs text-muted-foreground">Nenhuma transação recente.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {state.orders.filter(o => o.status === 'pending' || o.status === 'approved').slice(0, 5).map(o => (
+                        <div key={o.id} className="flex items-center justify-between text-xs">
+                          <span className="text-card-foreground truncate max-w-[120px]">{o.customerName}</span>
+                          <span className={`font-medium ${o.status === 'approved' ? 'text-chart-1' : 'text-chart-4'}`}>
+                            {helpers.formatMoney(o.value)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </AnimatedCard>
+              </div>
             </div>
           </div>
         )}
