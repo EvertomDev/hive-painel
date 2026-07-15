@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useApp } from '../store/AppContext';
 import { PageTransition, AnimatedCard, AnimatedButton } from '../components/ui/AnimatedContainer';
-import { Check, X, Shield, CreditCard, QrCode, Plus, Trash2, DollarSign, Settings } from 'lucide-react';
+import { Check, X, Shield, CreditCard, QrCode, Plus, Trash2, DollarSign, Settings, ChevronDown, ChevronUp } from 'lucide-react';
 
 function Gateways() {
   const { state, dispatch, addActivity, addNotification } = useApp();
   const [configs, setConfigs] = useState({});
   const [showAdd, setShowAdd] = useState(false);
   const [newGateway, setNewGateway] = useState({ name: '', type: 'PIX', apiKey: '', secretKey: '' });
+  const [expanded, setExpanded] = useState(null);
 
   const gatewayIcons = { PIX: QrCode, 'PIX / Cartão': Shield, Cartão: CreditCard, Crypto: DollarSign };
 
@@ -91,6 +92,7 @@ function Gateways() {
             </div>
           ) : state.gateways.map((g, i) => {
             const Icon = gatewayIcons[g.type] || Shield;
+            const isOpen = expanded === g.name;
             return (
               <div key={g.name} className="animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
                 <AnimatedCard className="bg-card rounded-xl border border-border p-6 shadow-sm h-full">
@@ -115,27 +117,37 @@ function Gateways() {
                     </div>
                   </div>
 
-                  <div className="space-y-3 mb-4">
-                    <div>
-                      <label className="block text-xs font-medium text-muted-foreground mb-1">API Key</label>
-                      <input type="password" placeholder="••••••••••••" className="w-full px-3 py-2 rounded-lg bg-background border border-input text-sm text-foreground focus:ring-2 focus:ring-ring outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-muted-foreground mb-1">Secret Key</label>
-                      <input type="password" placeholder="••••••••••••" className="w-full px-3 py-2 rounded-lg bg-background border border-input text-sm text-foreground focus:ring-2 focus:ring-ring outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-muted-foreground mb-1">Chave PIX (para gateway PIX)</label>
-                      <input placeholder="CPF, CNPJ, email ou telefone" className="w-full px-3 py-2 rounded-lg bg-background border border-input text-sm text-foreground focus:ring-2 focus:ring-ring outline-none" />
-                    </div>
-                  </div>
+                  <button onClick={() => setExpanded(isOpen ? null : g.name)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-semibold rounded-lg transition-all">
+                    <Settings size={16} />
+                    Configurar
+                    {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </button>
 
-                  <div className="flex gap-2">
-                    <AnimatedButton onClick={() => handleSaveConfig(g.name)} className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold rounded-lg flex items-center gap-1"><Settings size={14} /> Salvar</AnimatedButton>
-                    <button onClick={() => handleToggle(g)} className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${g.connected ? 'bg-destructive/10 text-destructive hover:bg-destructive/20' : 'bg-chart-1/15 text-chart-1 hover:bg-chart-1/25'}`}>
-                      {g.connected ? 'Desconectar' : 'Conectar'}
-                    </button>
-                  </div>
+                  {isOpen && (
+                    <div className="mt-4 space-y-3 animate-fade-in">
+                      <div>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">API Key</label>
+                        <input type="password" placeholder="••••••••••••" className="w-full px-3 py-2 rounded-lg bg-background border border-input text-sm text-foreground focus:ring-2 focus:ring-ring outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">Secret Key</label>
+                        <input type="password" placeholder="••••••••••••" className="w-full px-3 py-2 rounded-lg bg-background border border-input text-sm text-foreground focus:ring-2 focus:ring-ring outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">Chave PIX</label>
+                        <input placeholder="CPF, CNPJ, email ou telefone" className="w-full px-3 py-2 rounded-lg bg-background border border-input text-sm text-foreground focus:ring-2 focus:ring-ring outline-none" />
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <AnimatedButton onClick={() => handleSaveConfig(g.name)}
+                          className="flex-1 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold rounded-lg">Salvar</AnimatedButton>
+                        <button onClick={() => handleToggle(g)}
+                          className={`flex-1 px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${g.connected ? 'bg-destructive/10 text-destructive hover:bg-destructive/20' : 'bg-chart-1/15 text-chart-1 hover:bg-chart-1/25'}`}>
+                          {g.connected ? 'Desconectar' : 'Conectar'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </AnimatedCard>
               </div>
             );
