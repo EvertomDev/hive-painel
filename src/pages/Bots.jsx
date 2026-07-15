@@ -84,7 +84,28 @@ function Bots() {
           token: bot.token,
           id: bot.id,
           groups: botGroups,
-          pixConfig: state.pixConfig,
+          pixConfig: {
+            ...state.pixConfig,
+            gateways: (() => {
+              const gwMap = {};
+              state.gateways.forEach(g => {
+                const key = g.name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+                gwMap[key] = {
+                  apiKey: g.apiKey || '',
+                  clientId: g.apiKey || '',
+                  token: g.apiKey || '',
+                  secretKey: g.secretKey || '',
+                  clientSecret: g.secretKey || '',
+                  email: g.email || '',
+                  webhookUrl: g.webhookUrl || '',
+                  pixKey: g.pixKey || state.pixConfig.pixKey || '',
+                  cpf: g.cpf || '',
+                  sandbox: g.sandbox || false,
+                };
+              });
+              return gwMap;
+            })(),
+          },
         })
       });
       const data = await res.json();

@@ -5,6 +5,8 @@ import { getTelegramManager } from './server/telegramManager.js';
 import { getWhatsAppManager } from './server/whatsappManager.js';
 import * as contentEngine from './server/contentEngine.js';
 import { generatePixQrCode } from './server/pixGateway.js';
+import * as generic from './server/genericGateway.js';
+import gatewayConfigs from './server/gatewayRegistry.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -156,7 +158,7 @@ app.post('/api/content/start-bot', async (req, res) => {
       token,
       id,
       groups: groups || [],
-      pixConfig: pixConfig || { pixKey: 'zeze@pix.com', merchantName: 'Zeze' },
+      pixConfig: pixConfig || { pixKey: 'zeze@pix.com', merchantName: 'Zeze', gateways: {}, gateway: 'static' },
     }, {
       onOrder: (order) => {
         botSessions.set(`order_${order.paymentId}`, order);
@@ -235,6 +237,92 @@ app.get('/api/content/contacts', (req, res) => {
   }
   res.json({ ok: true, contacts });
 });
+
+// ========================
+// Webhook universal para todos os gateways
+// ========================
+app.post('/api/gateway/webhook/:gateway', async (req, res) => {
+  try {
+    const { gateway } = req.params;
+    const payload = req.body;
+
+    const chargeId = payload.id || payload.charge_id || payload.payment_id || payload.txid ||
+      payload.data?.id || payload.data?.object?.id;
+    const status = (payload.status || payload.data?.status || payload.data?.object?.status || '').toLowerCase();
+
+    if (chargeId && (
+      status === 'paid' || status === 'completed' || status === 'approved' ||
+      status === 'concluida' || status === 'succeeded' || status === 'confirmed'
+    )) {
+      _findAndConfirmOrder(chargeId);
+    }
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error(`Webhook error:`, error.message);
+    res.json({ ok: false });
+  }
+});
+
+// ========================
+// Stripe Webhook específico (usa raw body)
+// ========================
+app.post('/api/gateway/webhook/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  try {
+    const payload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    if (payload.type === 'payment_intent.succeeded') {
+      _findAndConfirmOrder(payload.data.object.id);
+    }
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Stripe webhook error:', error.message);
+    res.json({ ok: false });
+  }
+});
+
+// ========================
+// Check charge universal
+// ========================
+app.post('/api/gateway/check/:gateway', async (req, res) => {
+  try {
+    const { gateway } = req.params;
+    const { chargeId, ...credentials } = req.body;
+    if (!chargeId) return res.status(400).json({ ok: false, error: 'chargeId obrigatório' });
+
+    const gwConfig = gatewayConfigs[gateway];
+    if (!gwConfig) return res.status(400).json({ ok: false, error: `Gateway "${gateway}" não encontrado` });
+
+    const result = await generic.checkCharge(gwConfig, credentials, chargeId);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
+});
+
+// ─── Helper: confirm order by paymentId ─────────────────────
+function _findAndConfirmOrder(chargeId) {
+  let matched = botSessions.get(`order_${chargeId}`);
+  if (!matched) {
+    for (const [key, val] of botSessions) {
+      if (key.startsWith('order_') && (val.paymentId === chargeId || val.paymentId?.endsWith(chargeId))) {
+        matched = val;
+        break;
+      }
+    }
+  }
+  if (matched) {
+    botSessions.set(`proof_${matched.chatId}`, {
+      chatId: matched.chatId,
+      groupId: matched.groupId,
+      groupName: matched.groupName,
+      value: matched.value,
+      botId: matched.botId,
+      botName: matched.botName,
+      status: 'proof_sent',
+      autoConfirmed: true,
+    });
+  }
+}
 
 // Healthcheck para Railway
 app.get('/health', (req, res) => {
