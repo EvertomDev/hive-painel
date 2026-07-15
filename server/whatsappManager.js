@@ -1,13 +1,16 @@
 import fs from 'fs';
 import pkg from 'whatsapp-web.js';
 import QRCode from 'qrcode';
-import { HttpsProxyAgent } from 'https-proxy-agent';
+import { getProxyPool } from './proxyPool.js';
 
 const { Client, LocalAuth } = pkg;
 
-const sessions = new Map();
+const proxyPool = getProxyPool();
 
-function createPuppeteerConfig() {
+const sessions = new Map();
+const proxyFailures = new Map();
+
+function createPuppeteerConfig(proxy) {
   const isProd = process.env.NODE_ENV === 'production';
   const headless = process.env.PUPPETEER_HEADLESS === 'false' ? false : (isProd ? true : 'new');
 
@@ -38,8 +41,12 @@ function createPuppeteerConfig() {
     '--disable-renderer-backgrounding',
   ];
 
-  if (process.env.PROXY_URL) {
-    args.push(`--proxy-server=${process.env.PROXY_URL}`);
+  const activeProxy = proxy || process.env.PROXY_URL;
+  if (activeProxy) {
+    args.push(`--proxy-server=${activeProxy}`);
+    console.log(`[WhatsApp] Usando proxy: ${activeProxy}`);
+  } else {
+    console.log('[WhatsApp] Sem proxy - conexão direta');
   }
 
   return {
@@ -67,7 +74,11 @@ export function getWhatsAppManager() {
         return { ok: true, status: existing.status, qr: existing.qr };
       }
 
-      return new Promise((resolve) => {
+      const maxRetries = parseInt(process.env.PROXY_RETRIES || '3', 10);
+      let lastError = null;
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        const proxy = await proxyPool.getProxy();
         const session = {
           id: sessionId,
           client: null,
@@ -76,98 +87,104 @@ export function getWhatsAppManager() {
           ready: false,
           messages: [],
           info: null,
+          proxy,
         };
-        sessions.set(sessionId, session);
 
-        const puppeteerConfig = createPuppeteerConfig();
+        if (!sessions.has(sessionId)) sessions.set(sessionId, session);
 
-        const client = new Client({
-          authStrategy: new LocalAuth({ dataPath: `./data/whatsapp-${sessionId}` }),
-          puppeteer: {
-            ...puppeteerConfig,
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-          },
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        const result = await new Promise((resolve) => {
+          const puppeteerConfig = createPuppeteerConfig(proxy);
+
+          const client = new Client({
+            authStrategy: new LocalAuth({ dataPath: `./data/whatsapp-${sessionId}` }),
+            puppeteer: {
+              ...puppeteerConfig,
+              executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+            },
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          });
+          session.client = client;
+
+          client.on('qr', async (qr) => {
+            session.qr = await QRCode.toDataURL(qr);
+            session.status = 'qr';
+            try {
+              const qrDir = './data/qr-codes';
+              if (!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
+              fs.writeFileSync(`${qrDir}/${sessionId}.html`, `<html><body style="display:flex;align-items:center;justify-content:center;height:100vh;background:#111"><img src="${session.qr}" /></body></html>`);
+            } catch (e) { logError('qr-save', e); }
+            if (callbacks.onQr) callbacks.onQr(sessionId, session.qr);
+            resolve({ ok: true, status: 'qr', qr: session.qr, attempt });
+          });
+
+          client.on('ready', () => {
+            console.log(`[WhatsApp][${sessionId}] Sessão pronta!${proxy ? ` (proxy: ${proxy})` : ''}`);
+            session.ready = true;
+            session.status = 'ready';
+            session.info = { name: 'WhatsApp Session' };
+            if (callbacks.onReady) callbacks.onReady(sessionId);
+          });
+
+          client.on('authenticated', () => {
+            console.log(`[WhatsApp][${sessionId}] Autenticado com sucesso`);
+            session.status = 'authenticated';
+          });
+
+          client.on('auth_failure', (msg) => {
+            console.error(`[WhatsApp][${sessionId}] Falha na autenticação:`, msg);
+            if (proxy) proxyPool.reportDead(proxy);
+            sessions.delete(sessionId);
+            if (callbacks.onError) callbacks.onError(sessionId, msg);
+          });
+
+          client.on('disconnected', (reason) => {
+            console.warn(`[WhatsApp][${sessionId}] Desconectado:`, reason);
+            sessions.delete(sessionId);
+            if (callbacks.onDisconnect) callbacks.onDisconnect(sessionId, reason);
+          });
+
+          client.on('message_create', async (msg) => {
+            if (msg.fromMe) return;
+            try {
+              const contact = await msg.getContact();
+              const message = {
+                id: msg.id.id,
+                chatId: msg.from,
+                from: contact.pushname || contact.number || 'Usuário',
+                text: msg.body || '[mídia]',
+                date: new Date(msg.timestamp * 1000).toISOString(),
+                direction: 'in',
+                platform: 'whatsapp',
+              };
+              session.messages.unshift(message);
+              if (session.messages.length > 200) session.messages.pop();
+              if (callbacks.onMessage) callbacks.onMessage(sessionId, message);
+            } catch (e) { logError('message_create', e); }
+          });
+
+          client.initialize().catch(err => {
+            logError('initialize', err);
+            if (proxy) proxyPool.reportDead(proxy);
+            sessions.delete(sessionId);
+            resolve({ ok: false, error: err.message, attempt });
+          });
+
+          const timeout = parseInt(process.env.WHATSAPP_TIMEOUT || '30000', 10);
+          setTimeout(() => {
+            if (session.status === 'connecting') {
+              console.warn(`[WhatsApp][${sessionId}] Timeout (${timeout}ms) tentativa ${attempt + 1}`);
+              resolve({ ok: false, error: 'timeout', attempt });
+            }
+          }, timeout);
         });
-        session.client = client;
 
-        client.on('qr', async (qr) => {
-          session.qr = await QRCode.toDataURL(qr);
-          session.status = 'qr';
+        if (result.ok) return result;
+        lastError = result.error;
+        console.warn(`[WhatsApp][${sessionId}] Tentativa ${attempt + 1} falhou: ${result.error}. ${attempt < maxRetries - 1 ? 'Tentando próximo proxy...' : ''}`);
+      }
 
-          try {
-            const qrDir = './data/qr-codes';
-            if (!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
-            fs.writeFileSync(`${qrDir}/${sessionId}.html`, `<html><body style="display:flex;align-items:center;justify-content:center;height:100vh;background:#111"><img src="${session.qr}" /></body></html>`);
-          } catch (e) {
-            logError('qr-save', e);
-          }
-
-          if (callbacks.onQr) callbacks.onQr(sessionId, session.qr);
-          resolve({ ok: true, status: 'qr', qr: session.qr });
-        });
-
-        client.on('ready', () => {
-          console.log(`[WhatsApp][${sessionId}] Sessão pronta!`);
-          session.ready = true;
-          session.status = 'ready';
-          session.info = { name: 'WhatsApp Session' };
-          if (callbacks.onReady) callbacks.onReady(sessionId);
-        });
-
-        client.on('authenticated', () => {
-          console.log(`[WhatsApp][${sessionId}] Autenticado com sucesso`);
-          session.status = 'authenticated';
-        });
-
-        client.on('auth_failure', (msg) => {
-          console.error(`[WhatsApp][${sessionId}] Falha na autenticação:`, msg);
-          session.status = 'auth_failure';
-          sessions.delete(sessionId);
-          if (callbacks.onError) callbacks.onError(sessionId, msg);
-        });
-
-        client.on('disconnected', (reason) => {
-          console.warn(`[WhatsApp][${sessionId}] Desconectado:`, reason);
-          sessions.delete(sessionId);
-          if (callbacks.onDisconnect) callbacks.onDisconnect(sessionId, reason);
-        });
-
-        client.on('message_create', async (msg) => {
-          if (msg.fromMe) return;
-          try {
-            const contact = await msg.getContact();
-            const message = {
-              id: msg.id.id,
-              chatId: msg.from,
-              from: contact.pushname || contact.number || 'Usuário',
-              text: msg.body || '[mídia]',
-              date: new Date(msg.timestamp * 1000).toISOString(),
-              direction: 'in',
-              platform: 'whatsapp',
-            };
-            session.messages.unshift(message);
-            if (session.messages.length > 200) session.messages.pop();
-            if (callbacks.onMessage) callbacks.onMessage(sessionId, message);
-          } catch (e) {
-            logError('message_create', e);
-          }
-        });
-
-        client.initialize().catch(err => {
-          logError('initialize', err);
-          sessions.delete(sessionId);
-          resolve({ ok: false, error: err.message });
-        });
-
-        const timeout = parseInt(process.env.WHATSAPP_TIMEOUT || '30000', 10);
-        setTimeout(() => {
-          if (session.status === 'connecting') {
-            console.warn(`[WhatsApp][${sessionId}] Timeout de conexão (${timeout}ms)`);
-            resolve({ ok: true, status: 'connecting', qr: session.qr });
-          }
-        }, timeout);
-      });
+      sessions.delete(sessionId);
+      return { ok: false, error: `Todas as ${maxRetries} tentativas falharam. Último erro: ${lastError}` };
     },
     getStatus(sessionId) {
       const session = sessions.get(sessionId);
