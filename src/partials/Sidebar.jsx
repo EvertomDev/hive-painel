@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useApp } from '../store/AppContext';
 
@@ -43,7 +43,6 @@ const menuGroups = [
 function Sidebar({ sidebarOpen, setSidebarOpen }) {
   const { state } = useApp();
   const location = window.location.pathname;
-  const [expandedGroup, setExpandedGroup] = useState('Automações');
 
   const badges = useMemo(() => ({
     bots: state.bots.length,
@@ -79,19 +78,16 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
         <div className="px-3 space-y-4">
           {menuGroups.map((group) => {
-            const isExpanded = expandedGroup === group.label;
             const hasActive = group.items.some(item => item.path === '/' ? location === '/' : location.startsWith(item.path));
             return (
               <div key={group.label}>
                 {group.label !== 'Principal' && (
-                  <button onClick={() => setExpandedGroup(isExpanded ? null : group.label)}
-                    className={`flex items-center justify-between w-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-card-foreground transition-colors ${hasActive ? 'text-card-foreground' : ''}`}>
+                  <div className={`flex items-center px-3 py-1.5 text-xs font-semibold uppercase tracking-wider ${hasActive ? 'text-card-foreground' : 'text-muted-foreground'}`}>
                     {group.label}
-                    <svg className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9 18l6-6-6-6" /></svg>
-                  </button>
+                  </div>
                 )}
                 <div className="space-y-0.5 mt-1">
-                  {(group.label === 'Principal' || isExpanded) && group.items.map((item) => {
+                  {group.items.map((item) => {
                     const badge = item.badge ? badges[item.badge] : null;
                     const isActive = item.path === '/' ? location === '/' : location.startsWith(item.path);
                     return (
