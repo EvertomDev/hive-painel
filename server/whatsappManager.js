@@ -64,6 +64,38 @@ function logError(context, err) {
   });
 }
 
+async function destroyClient(client) {
+  if (!client) return;
+  try {
+    const browser = client.pupBrowser;
+    if (browser && browser.isConnected()) {
+      await browser.close().catch(() => {});
+    }
+    if (client.destroy) {
+      await client.destroy().catch(() => {});
+    }
+  } catch (e) {
+    logError('destroyClient', e);
+  }
+}
+
+function cleanupOldSessions(basePath, keepAttempt) {
+  try {
+    const dataDir = './data';
+    if (!fs.existsSync(dataDir)) return;
+    const entries = fs.readdirSync(dataDir);
+    const prefix = basePath.split('/').pop();
+    entries.forEach(entry => {
+      if (entry.startsWith(prefix) && !entry.endsWith(`-attempt-${keepAttempt}`)) {
+        const fullPath = `${dataDir}/${entry}`;
+        try {
+          fs.rmSync(fullPath, { recursive: true, force: true });
+        } catch (e) {}
+      }
+    });
+  } catch (e) {}
+}
+
 export function getWhatsAppManager() {
   return {
     sessions,
@@ -75,10 +107,15 @@ export function getWhatsAppManager() {
       }
 
       const maxRetries = parseInt(process.env.PROXY_RETRIES || '3', 10);
+      const timeout = parseInt(process.env.WHATSAPP_TIMEOUT || '25000', 10);
       let lastError = null;
+
+      const baseDataPath = `./data/whatsapp-${sessionId}`;
 
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         const proxy = await proxyPool.getProxy();
+        const dataPath = `${baseDataPath}-attempt-${attempt}`;
+
         const session = {
           id: sessionId,
           client: null,
@@ -96,7 +133,7 @@ export function getWhatsAppManager() {
           const puppeteerConfig = createPuppeteerConfig(proxy);
 
           const client = new Client({
-            authStrategy: new LocalAuth({ dataPath: `./data/whatsapp-${sessionId}` }),
+            authStrategy: new LocalAuth({ dataPath }),
             puppeteer: {
               ...puppeteerConfig,
               executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
@@ -133,13 +170,13 @@ export function getWhatsAppManager() {
           client.on('auth_failure', (msg) => {
             console.error(`[WhatsApp][${sessionId}] Falha na autenticação:`, msg);
             if (proxy) proxyPool.reportDead(proxy);
-            sessions.delete(sessionId);
+            destroyClient(client).then(() => sessions.delete(sessionId));
             if (callbacks.onError) callbacks.onError(sessionId, msg);
           });
 
           client.on('disconnected', (reason) => {
             console.warn(`[WhatsApp][${sessionId}] Desconectado:`, reason);
-            sessions.delete(sessionId);
+            destroyClient(client).then(() => sessions.delete(sessionId));
             if (callbacks.onDisconnect) callbacks.onDisconnect(sessionId, reason);
           });
 
@@ -165,21 +202,25 @@ export function getWhatsAppManager() {
           client.initialize().catch(err => {
             logError('initialize', err);
             if (proxy) proxyPool.reportDead(proxy);
-            sessions.delete(sessionId);
+            destroyClient(client).then(() => sessions.delete(sessionId));
             resolve({ ok: false, error: err.message, attempt });
           });
 
-          const timeout = parseInt(process.env.WHATSAPP_TIMEOUT || '30000', 10);
           setTimeout(() => {
             if (session.status === 'connecting') {
               console.warn(`[WhatsApp][${sessionId}] Timeout (${timeout}ms) tentativa ${attempt + 1}`);
+              destroyClient(client);
               resolve({ ok: false, error: 'timeout', attempt });
             }
           }, timeout);
         });
 
-        if (result.ok) return result;
+        if (result.ok) {
+          cleanupOldSessions(baseDataPath, attempt);
+          return result;
+        }
         lastError = result.error;
+        await destroyClient(session.client);
         console.warn(`[WhatsApp][${sessionId}] Tentativa ${attempt + 1} falhou: ${result.error}. ${attempt < maxRetries - 1 ? 'Tentando próximo proxy...' : ''}`);
       }
 
