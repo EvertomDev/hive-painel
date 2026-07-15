@@ -1,7 +1,8 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import TelegramBot from 'node-telegram-bot-api';
+import { getTelegramManager } from './server/telegramManager.js';
+import { getWhatsAppManager } from './server/whatsappManager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,84 +13,8 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'dist')));
 
-const telegramSessions = new Map();
-let whatsappManager = null;
-
-// Carrega WhatsApp apenas se as dependências estiverem instaladas (uso local/VPS)
-try {
-  const { default: ww } = await import('./server/whatsappManager.js');
-  whatsappManager = ww;
-} catch (e) {
-  console.log('WhatsApp não disponível neste ambiente. Instale whatsapp-web.js e puppeteer para habilitar.');
-}
-
-function telegramValidateToken(token) {
-  const bot = new TelegramBot(token, { polling: false });
-  return bot.getMe();
-}
-
-function telegramStartBot(token) {
-  if (telegramSessions.has(token)) return { ok: true, info: telegramSessions.get(token).info };
-  const bot = new TelegramBot(token, { polling: true });
-  const session = { bot, info: null, messages: [] };
-  telegramSessions.set(token, session);
-  bot.getMe().then(me => { session.info = me; }).catch(() => {});
-  bot.on('message', (msg) => {
-    session.messages.unshift({
-      id: msg.message_id,
-      chatId: msg.chat.id,
-      from: msg.from?.username || msg.from?.first_name || 'Usuário',
-      text: msg.text || '[mídia]',
-      date: new Date(msg.date * 1000).toISOString(),
-      direction: 'in',
-      platform: 'telegram',
-    });
-    if (session.messages.length > 200) session.messages.pop();
-  });
-  return { ok: true };
-}
-
-async function telegramSendMessage(token, chatId, text) {
-  const session = telegramSessions.get(token);
-  if (!session) throw new Error('Inicie o bot primeiro');
-  const sent = await session.bot.sendMessage(chatId, text);
-  return {
-    id: sent.message_id,
-    chatId: sent.chat.id,
-    from: session.info?.username || 'Você',
-    text,
-    date: new Date().toISOString(),
-    direction: 'out',
-    platform: 'telegram',
-  };
-}
-
-function telegramGetMessages(token, chatId = null) {
-  const session = telegramSessions.get(token);
-  if (!session) return [];
-  let msgs = session.messages;
-  if (chatId) msgs = msgs.filter(m => String(m.chatId) === String(chatId));
-  return msgs.slice(0, 100);
-}
-
-function telegramGetChats(token) {
-  const session = telegramSessions.get(token);
-  if (!session) return [];
-  const chats = {};
-  session.messages.forEach(m => {
-    if (!chats[m.chatId]) {
-      chats[m.chatId] = { chatId: m.chatId, name: m.from, platform: 'telegram', lastMessage: m.text, lastDate: m.date, unread: 0 };
-    }
-    if (m.direction === 'in') chats[m.chatId].unread += 1;
-    chats[m.chatId].lastMessage = m.text;
-    chats[m.chatId].lastDate = m.date;
-  });
-  return Object.values(chats).sort((a, b) => new Date(b.lastDate) - new Date(a.lastDate));
-}
-
-function whatsappUnavailable() {
-  return { ok: false, error: 'WhatsApp requer um servidor Node.js contínuo. No Vercel apenas Telegram está disponível. Use VPS/Railway/Render para WhatsApp.' };
-}
+const telegram = getTelegramManager();
+const whatsapp = getWhatsAppManager();
 
 // ========================
 // Telegram
@@ -98,8 +23,8 @@ app.post('/api/telegram/me', async (req, res) => {
   try {
     const { token } = req.body;
     if (!token) return res.status(400).json({ ok: false, error: 'Token não fornecido' });
-    const me = await telegramValidateToken(token);
-    res.json({ ok: true, result: me });
+    const data = await telegram.validateToken(token);
+    res.json(data);
   } catch (error) {
     res.status(400).json({ ok: false, error: error.message });
   }
@@ -109,7 +34,8 @@ app.post('/api/telegram/start', async (req, res) => {
   try {
     const { token } = req.body;
     if (!token) return res.status(400).json({ ok: false, error: 'Token não fornecido' });
-    res.json(telegramStartBot(token));
+    const result = telegram.startBot(token);
+    res.json(result);
   } catch (error) {
     res.status(400).json({ ok: false, error: error.message });
   }
@@ -119,8 +45,8 @@ app.post('/api/telegram/send-message', async (req, res) => {
   try {
     const { token, chatId, text } = req.body;
     if (!token || !chatId || !text) return res.status(400).json({ ok: false, error: 'Dados incompletos' });
-    const message = await telegramSendMessage(token, chatId, text);
-    res.json({ ok: true, message });
+    const data = await telegram.sendMessage(token, chatId, text);
+    res.json(data);
   } catch (error) {
     res.status(400).json({ ok: false, error: error.message });
   }
@@ -130,7 +56,7 @@ app.post('/api/telegram/messages', async (req, res) => {
   try {
     const { token, chatId } = req.body;
     if (!token) return res.status(400).json({ ok: false, error: 'Token não fornecido' });
-    res.json({ ok: true, messages: telegramGetMessages(token, chatId) });
+    res.json({ ok: true, messages: telegram.getMessages(token, chatId) });
   } catch (error) {
     res.status(400).json({ ok: false, error: error.message });
   }
@@ -140,7 +66,7 @@ app.post('/api/telegram/chats', async (req, res) => {
   try {
     const { token } = req.body;
     if (!token) return res.status(400).json({ ok: false, error: 'Token não fornecido' });
-    res.json({ ok: true, chats: telegramGetChats(token) });
+    res.json({ ok: true, chats: telegram.getChats(token) });
   } catch (error) {
     res.status(400).json({ ok: false, error: error.message });
   }
@@ -150,28 +76,67 @@ app.post('/api/telegram/chats', async (req, res) => {
 // WhatsApp
 // ========================
 app.post('/api/whatsapp/start', async (req, res) => {
-  if (!whatsappManager) return res.status(503).json(whatsappUnavailable());
-  // ... resto omitido, usa whatsappManager
+  try {
+    const { sessionId } = req.body;
+    const result = await whatsapp.startSession(sessionId || 'default', {
+      onQr: (id, qr) => {},
+      onReady: (id) => {},
+      onMessage: (id, msg) => {},
+      onError: (id, error) => {},
+      onDisconnect: (id) => {},
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
 });
 
 app.post('/api/whatsapp/status', async (req, res) => {
-  if (!whatsappManager) return res.status(503).json(whatsappUnavailable());
+  try {
+    const { sessionId } = req.body;
+    res.json({ ok: true, ...whatsapp.getStatus(sessionId || 'default') });
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
 });
 
 app.post('/api/whatsapp/send-message', async (req, res) => {
-  if (!whatsappManager) return res.status(503).json(whatsappUnavailable());
+  try {
+    const { sessionId, chatId, text } = req.body;
+    if (!chatId || !text) return res.status(400).json({ ok: false, error: 'chatId e text são obrigatórios' });
+    const data = await whatsapp.sendMessage(sessionId || 'default', chatId, text);
+    res.json(data);
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
 });
 
 app.post('/api/whatsapp/messages', async (req, res) => {
-  if (!whatsappManager) return res.status(503).json(whatsappUnavailable());
+  try {
+    const { sessionId, chatId } = req.body;
+    res.json({ ok: true, messages: whatsapp.getMessages(sessionId || 'default', chatId) });
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
 });
 
 app.post('/api/whatsapp/chats', async (req, res) => {
-  if (!whatsappManager) return res.status(503).json(whatsappUnavailable());
+  try {
+    const { sessionId } = req.body;
+    res.json({ ok: true, chats: whatsapp.getChats(sessionId || 'default') });
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
 });
 
 app.post('/api/whatsapp/logout', async (req, res) => {
-  if (!whatsappManager) return res.status(503).json(whatsappUnavailable());
+  try {
+    const { sessionId } = req.body;
+    const data = await whatsapp.logout(sessionId || 'default');
+    res.json(data);
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
 });
 
 // SPA fallback

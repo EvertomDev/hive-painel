@@ -1,7 +1,7 @@
 import pkg from 'whatsapp-web.js';
 import QRCode from 'qrcode';
 
-const { Client, NoAuth } = pkg;
+const { Client, LocalAuth } = pkg;
 
 const sessions = new Map();
 
@@ -28,7 +28,7 @@ export function getWhatsAppManager() {
         sessions.set(sessionId, session);
 
         const client = new Client({
-          authStrategy: new NoAuth(),
+          authStrategy: new LocalAuth({ dataPath: `./data/whatsapp-${sessionId}` }),
           puppeteer: {
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
@@ -67,19 +67,21 @@ export function getWhatsAppManager() {
 
         client.on('message_create', async (msg) => {
           if (msg.fromMe) return;
-          const contact = await msg.getContact();
-          const message = {
-            id: msg.id.id,
-            chatId: msg.from,
-            from: contact.pushname || contact.number || 'Usuário',
-            text: msg.body || '[mídia]',
-            date: new Date(msg.timestamp * 1000).toISOString(),
-            direction: 'in',
-            platform: 'whatsapp',
-          };
-          session.messages.unshift(message);
-          if (session.messages.length > 200) session.messages.pop();
-          if (callbacks.onMessage) callbacks.onMessage(sessionId, message);
+          try {
+            const contact = await msg.getContact();
+            const message = {
+              id: msg.id.id,
+              chatId: msg.from,
+              from: contact.pushname || contact.number || 'Usuário',
+              text: msg.body || '[mídia]',
+              date: new Date(msg.timestamp * 1000).toISOString(),
+              direction: 'in',
+              platform: 'whatsapp',
+            };
+            session.messages.unshift(message);
+            if (session.messages.length > 200) session.messages.pop();
+            if (callbacks.onMessage) callbacks.onMessage(sessionId, message);
+          } catch (e) {}
         });
 
         client.initialize().catch(err => {
@@ -128,14 +130,7 @@ export function getWhatsAppManager() {
       const chats = {};
       session.messages.forEach(m => {
         if (!chats[m.chatId]) {
-          chats[m.chatId] = {
-            chatId: m.chatId,
-            name: m.from,
-            platform: 'whatsapp',
-            lastMessage: m.text,
-            lastDate: m.date,
-            unread: 0,
-          };
+          chats[m.chatId] = { chatId: m.chatId, name: m.from, platform: 'whatsapp', lastMessage: m.text, lastDate: m.date, unread: 0 };
         }
         if (m.direction === 'in') chats[m.chatId].unread += 1;
         chats[m.chatId].lastMessage = m.text;
