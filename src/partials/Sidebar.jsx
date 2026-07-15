@@ -78,9 +78,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
   const location = useLocation();
 
   const badges = useMemo(() => ({
-    bots: state.bots.filter(b => b.status === 'active').length,
-    sales: state.sales.filter(s => s.status === 'pending').length,
-    clients: state.clients.length,
+    bots: state.bots.length,
+    sales: state.orders.filter(o => o.status === 'pending').length,
+    clients: state.members.length,
     gateways: state.gateways.filter(g => !g.connected).length,
     flows: state.flows.length,
     accounts: state.accounts.length,

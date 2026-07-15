@@ -1,8 +1,13 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 import { getTelegramManager } from './server/telegramManager.js';
 import { getWhatsAppManager } from './server/whatsappManager.js';
+
+const require = createRequire(import.meta.url);
+const contentEngine = require('./server/contentEngine.js');
+const { generatePixQrCode } = require('./server/pixGateway.js');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -137,6 +142,101 @@ app.post('/api/whatsapp/logout', async (req, res) => {
   } catch (error) {
     res.status(400).json({ ok: false, error: error.message });
   }
+});
+
+// ========================
+// Content Selling (Grupos)
+// ========================
+const botSessions = new Map();
+
+app.post('/api/content/start-bot', async (req, res) => {
+  try {
+    const { name, token, id, groups, pixConfig } = req.body;
+    if (!token || !id) return res.status(400).json({ ok: false, error: 'Token e ID obrigatórios' });
+
+    const result = await contentEngine.startBot({
+      name: name || 'Bot',
+      token,
+      id,
+      groups: groups || [],
+      pixConfig: pixConfig || { pixKey: 'zeze@pix.com', merchantName: 'Zeze' },
+    }, {
+      onOrder: (order) => {
+        botSessions.set(`order_${order.paymentId}`, order);
+      },
+      onPaymentConfirm: (data) => {
+        botSessions.set(`proof_${data.chatId}`, data);
+      },
+      onContact: (data) => {
+        botSessions.set(`contact_${data.chatId}`, data);
+      },
+    });
+
+    if (result.ok) {
+      botSessions.set(`bot_${id}`, { running: true, name, token });
+    }
+
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
+});
+
+app.post('/api/content/stop-bot', (req, res) => {
+  const { id } = req.body;
+  const stopped = contentEngine.stopBot(id);
+  botSessions.delete(`bot_${id}`);
+  res.json({ ok: stopped });
+});
+
+app.get('/api/content/active-bots', (req, res) => {
+  res.json({ ok: true, bots: contentEngine.getActiveBots() });
+});
+
+app.post('/api/content/send-group-link', async (req, res) => {
+  try {
+    const { botId, chatId, inviteLink } = req.body;
+    const result = await contentEngine.sendGroupLink(botId, chatId, inviteLink);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
+});
+
+app.post('/api/content/send-message', async (req, res) => {
+  try {
+    const { botId, chatId, text } = req.body;
+    const result = await contentEngine.sendMessageToChat(botId, chatId, text);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
+});
+
+app.post('/api/content/generate-pix', async (req, res) => {
+  try {
+    const { pixKey, merchantName, amount, description, txId } = req.body;
+    const result = await generatePixQrCode(pixKey || 'zeze@pix.com', amount, merchantName || 'Zeze', description, txId);
+    res.json({ ok: true, ...result });
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
+});
+
+app.get('/api/content/orders', (req, res) => {
+  const orders = [];
+  for (const [key, value] of botSessions) {
+    if (key.startsWith('order_')) orders.push(value);
+  }
+  res.json({ ok: true, orders });
+});
+
+app.get('/api/content/contacts', (req, res) => {
+  const contacts = [];
+  for (const [key, value] of botSessions) {
+    if (key.startsWith('contact_') || key.startsWith('proof_')) contacts.push(value);
+  }
+  res.json({ ok: true, contacts });
 });
 
 // Healthcheck para Railway

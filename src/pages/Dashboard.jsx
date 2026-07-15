@@ -4,21 +4,22 @@ import { useApp } from '../store/AppContext';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { PageTransition, AnimatedCard, PulseDot } from '../components/ui/AnimatedContainer';
 import { PlatformIcon, getPlatformMeta } from '../components/accounts/PlatformIcon';
-import { Bot, DollarSign, Users, Clock, Monitor, MessageCircle, Activity, Wifi, WifiOff } from 'lucide-react';
+import { Bot, DollarSign, Users, Clock, Monitor, MessageCircle, Activity, Wifi, WifiOff, ShoppingCart } from 'lucide-react';
 
 function Dashboard() {
   const { state, helpers } = useApp();
 
   const activeBots = state.bots.filter(b => b.status === 'active').length;
   const approvedSales = state.sales.filter(s => s.status === 'approved');
-  const totalRevenue = approvedSales.reduce((a, s) => a + Number(s.value), 0);
-  const pendingSales = state.sales.filter(s => s.status === 'pending').length;
-  const totalClients = state.clients.length;
+  const totalRevenue = approvedSales.reduce((a, s) => a + Number(s.value), 0) + state.orders.filter(o => o.status === 'delivered' || o.status === 'approved').reduce((a, o) => a + Number(o.value), 0);
+  const pendingOrders = state.orders.filter(o => o.status === 'pending').length;
+  const totalMembers = state.members.length;
   const accountsOnline = state.accounts.filter(a => a.status === 'online').length;
   const accountsOffline = state.accounts.filter(a => a.status !== 'online').length;
   const msgAccounts = state.accounts.filter(a => ['telegram', 'whatsapp'].includes(a.platform)).length;
 
   const recentSales = [...state.sales].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+  const recentOrders = [...state.orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
 
   const last7 = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
@@ -44,8 +45,8 @@ function Dashboard() {
     labels: ['Aprovado', 'Pendente', 'Cancelado'],
     datasets: [{
       data: [
-        state.sales.filter(s => s.status === 'approved').length,
-        state.sales.filter(s => s.status === 'pending').length,
+        state.sales.filter(s => s.status === 'approved').length + state.orders.filter(o => o.status === 'delivered' || o.status === 'approved').length,
+        state.sales.filter(s => s.status === 'pending').length + state.orders.filter(o => o.status === 'pending').length,
         state.sales.filter(s => s.status === 'cancelled').length,
       ],
       backgroundColor: ['var(--chart-1)', 'var(--chart-3)', 'var(--destructive)'],
@@ -64,9 +65,9 @@ function Dashboard() {
 
   const statCards = [
     { label: 'Bots Ativos', value: activeBots, icon: Bot, color: 'text-chart-2', link: '/bots' },
-    { label: 'Faturamento', value: helpers.formatMoney(totalRevenue), icon: DollarSign, color: 'text-chart-1', link: '/vendas' },
-    { label: 'Contas Online', value: `${accountsOnline}/${state.accounts.length}`, icon: Wifi, color: 'text-chart-1', link: '/contas' },
-    { label: 'Mensageiros', value: msgAccounts, icon: MessageCircle, color: 'text-chart-2', link: '/mensagens' },
+    { label: 'Faturamento', value: helpers.formatMoney(totalRevenue), icon: DollarSign, color: 'text-chart-1', link: '/bots' },
+    { label: 'Membros', value: totalMembers, icon: Users, color: 'text-chart-3', link: '/bots' },
+    { label: 'Pedidos Pendentes', value: pendingOrders, icon: ShoppingCart, color: 'text-chart-4', link: '/bots' },
   ];
 
   return (

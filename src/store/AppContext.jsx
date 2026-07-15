@@ -34,6 +34,23 @@ const initialState = {
   ],
   accountCategories: ['Suporte', 'Vendas', 'Marketing', 'Pessoal'],
   accountFolders: ['Favoritos', 'Trabalho'],
+  groups: [
+    { id: uid(), name: 'VIP Premium 🔥', description: 'Grupo com conteúdo exclusivo atualizado toda semana', price: 29.90, inviteLink: 'https://t.me/+Exemplo', members: 47, preview: '🔥 Mais vendido!', category: 'vip', active: true, createdAt: today() },
+    { id: uid(), name: 'Pack Completo', description: 'Acesso a TODOS os grupos + bônus exclusivos', price: 49.90, inviteLink: 'https://t.me/+Exemplo2', members: 23, preview: '⭐ Completo!', category: 'combo', active: true, createdAt: today() },
+    { id: uid(), name: 'Grupo Free', description: 'Amostra grátis com conteúdo básico', price: 0, inviteLink: 'https://t.me/+Exemplo3', members: 120, preview: '🎁 Grátis!', category: 'free', active: true, createdAt: today() },
+  ],
+  groupCategories: ['todos', 'vip', 'combo', 'free'],
+  members: [
+    { id: uid(), groupId: '', name: 'João', contact: '@joao123', chatId: '123456', purchasedAt: today(), value: 29.90, status: 'active' },
+  ],
+  orders: [],
+  pixConfig: {
+    pixKey: 'zeze@pix.com',
+    merchantName: 'Zeze Content',
+    gateway: 'static',
+    mercadopagoToken: '',
+    mercadopagoEmail: '',
+  },
 };
 
 function loadState() {
@@ -50,6 +67,12 @@ function loadState() {
           accounts: parsed.accounts || initialState.accounts,
           accountCategories: parsed.accountCategories || initialState.accountCategories,
           accountFolders: parsed.accountFolders || initialState.accountFolders,
+          orders: parsed.orders || initialState.orders,
+          deliveries: parsed.deliveries || initialState.deliveries,
+          groups: parsed.groups || initialState.groups,
+          groupCategories: parsed.groupCategories || initialState.groupCategories,
+          members: parsed.members || initialState.members,
+          pixConfig: { ...initialState.pixConfig, ...(parsed.pixConfig || {}) },
           config: { ...initialState.config, ...(parsed.config || {}) },
           user: { ...initialState.user, ...(parsed.user || {}) },
         };
@@ -60,6 +83,36 @@ function loadState() {
 
 function reducer(state, action) {
   switch (action.type) {
+    case 'SET_PRODUCTS':
+      return { ...state, products: action.payload };
+    case 'ADD_PRODUCT':
+      return { ...state, products: [...state.products, action.payload] };
+    case 'UPDATE_PRODUCT':
+      return { ...state, products: state.products.map(p => p.id === action.payload.id ? { ...p, ...action.payload.data } : p) };
+    case 'DELETE_PRODUCT':
+      return { ...state, products: state.products.filter(p => p.id !== action.payload) };
+    case 'ADD_ORDER':
+      return { ...state, orders: [...state.orders, { ...action.payload, id: uid(), createdAt: new Date().toISOString() }] };
+    case 'UPDATE_ORDER':
+      return { ...state, orders: state.orders.map(o => o.id === action.payload.id ? { ...o, ...action.payload.data } : o) };
+    case 'ADD_DELIVERY':
+      return { ...state, deliveries: [...state.deliveries, { ...action.payload, id: uid(), createdAt: new Date().toISOString() }] };
+    case 'SET_GROUPS':
+      return { ...state, groups: action.payload };
+    case 'ADD_GROUP':
+      return { ...state, groups: [...state.groups, action.payload] };
+    case 'UPDATE_GROUP':
+      return { ...state, groups: state.groups.map(g => g.id === action.payload.id ? { ...g, ...action.payload.data } : g) };
+    case 'DELETE_GROUP':
+      return { ...state, groups: state.groups.filter(g => g.id !== action.payload) };
+    case 'ADD_MEMBER':
+      return { ...state, members: [...state.members, { ...action.payload, id: uid(), purchasedAt: today() }] };
+    case 'UPDATE_MEMBER':
+      return { ...state, members: state.members.map(m => m.id === action.payload.id ? { ...m, ...action.payload.data } : m) };
+    case 'DELETE_MEMBER':
+      return { ...state, members: state.members.filter(m => m.id !== action.payload) };
+    case 'SET_PIX_CONFIG':
+      return { ...state, pixConfig: { ...state.pixConfig, ...action.payload } };
     case 'HYDRATE':
       return { ...state, ...action.payload };
     case 'SET_USER':
