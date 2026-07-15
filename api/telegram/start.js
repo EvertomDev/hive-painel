@@ -9,5 +9,5 @@ export default async function handler(req, res) {
   if (!token) return res.status(400).json({ ok: false, error: 'Token é obrigatório' });
 
   const data = await telegramRequest(token, 'getMe');
-  return res.status(data.ok ? 200 : 400).json(data);
+  return res.status(data.ok ? 200 : 400).json({ ok: data.ok, info: data.result, error: data.error, note: 'Modo serverless: use a aba Mensagens para buscar atualizações.' });
 }

@@ -12,6 +12,7 @@ import Clients from './pages/Clients';
 import Gateways from './pages/Gateways';
 import Flows from './pages/Flows';
 import Accounts from './pages/Accounts';
+import Messages from './pages/Messages';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Route path="gateways" element={<Gateways />} />
         <Route path="fluxos" element={<Flows />} />
         <Route path="contas" element={<Accounts />} />
+        <Route path="mensagens" element={<Messages />} />
         <Route path="configuracoes" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

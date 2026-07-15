@@ -1,4 +1,4 @@
-import { telegramRequest, setCorsHeaders } from '../lib/telegram.js';
+import { telegramRequest, setCorsHeaders } from '../lib/telegramApi.js';
 
 export default async function handler(req, res) {
   setCorsHeaders(res);
