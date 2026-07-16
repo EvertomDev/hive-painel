@@ -344,14 +344,18 @@ function Gateways() {
                   {showSuggestions && filteredSuggestions.length > 0 && (
                     <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-[#1a1a22] border border-white/[0.08] rounded-xl shadow-2xl max-h-48 overflow-y-auto">
                       {filteredSuggestions.map(s => (
-                        <button key={s} type="button"
-                          onMouseDown={() => { setNewGateway({ ...newGateway, name: s }); setShowSuggestions(false); }}
-                          className="w-full text-left px-4 py-2.5 text-sm text-white/80 hover:bg-white/[0.04] transition-colors flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white" style={{ backgroundColor: GATEWAY_BRANDS[s] || '#3B82F6' }}>
-                            {GATEWAY_LOGO_STYLES[s] || s.substring(0, 2).toUpperCase()}
-                          </span>
-                          {s}
-                        </button>
+                          <button key={s} type="button"
+                            onMouseDown={() => { setNewGateway({ ...newGateway, name: s }); setShowSuggestions(false); }}
+                            className="w-full text-left px-4 py-2.5 text-sm text-white/80 hover:bg-white/[0.04] transition-colors flex items-center gap-2">
+                            {GATEWAY_LOGOS[s] ? (
+                              <img src={GATEWAY_LOGOS[s]} alt={s} className="w-6 h-6 rounded-md object-cover" />
+                            ) : (
+                              <span className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white" style={{ backgroundColor: GATEWAY_BRANDS[s] || '#3B82F6' }}>
+                                {GATEWAY_LOGO_STYLES[s] || s.substring(0, 2).toUpperCase()}
+                              </span>
+                            )}
+                            {s}
+                          </button>
                       ))}
                     </div>
                   )}
