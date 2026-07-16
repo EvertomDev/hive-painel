@@ -108,14 +108,6 @@ function GatewayCard({ gateway, index, expanded, setExpanded, editFields, handle
     setTimeout(() => setCopied(false), 2000);
   }
 
-  const [saveOk, setSaveOk] = useState(false);
-
-  function handleSave() {
-    handleSaveConfig(gateway.name);
-    setSaveOk(true);
-    setTimeout(() => setSaveOk(false), 2000);
-  }
-
   async function handleConnect() {
     setConnecting(true);
     handleSaveConfig(gateway.name);
@@ -198,24 +190,10 @@ function GatewayCard({ gateway, index, expanded, setExpanded, editFields, handle
                 ))}
               </div>
             </div>
-            <div className="flex gap-2">
-              <button onClick={handleSave}
-                className={`flex-1 px-4 py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1 ${
-                  saveOk
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20'
-                    : 'bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/[0.08]'
-                }`}>
-                {saveOk ? <><CheckCheck size={13} /> Salvo</> : <><CheckCheck size={13} /> Salvar</>}
-              </button>
-              <button onClick={handleConnect} disabled={connecting}
-                className={`flex-1 px-4 py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1 ${
-                  gateway.connected
-                    ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
-                    : 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/20'
-                } disabled:opacity-50 disabled:cursor-wait`}>
-                {connecting ? 'Conectando...' : gateway.connected ? <><X size={13} /> Desconectar</> : <><Zap size={13} /> Conectar</>}
-              </button>
-            </div>
+            <button onClick={handleConnect} disabled={connecting}
+              className="w-full px-4 py-2.5 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-wait bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/20">
+              {connecting ? 'Conectando...' : gateway.connected ? <><X size={13} /> Desconectar</> : <><Zap size={13} /> Conectar</>}
+            </button>
           </div>
         )}
       </GlassCard>
