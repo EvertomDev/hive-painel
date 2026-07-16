@@ -67,6 +67,11 @@ const initialState = {
     mercadopagoToken: '',
     mercadopagoEmail: '',
   },
+  projects: [
+    { id: uid(), name: 'Helix Jump', type: 'jogo', description: 'Jogo arcade com pagamento integrado via SigiloPay', domain: '', adminUrl: '', status: 'active', icon: '🎮', createdAt: today() },
+    { id: uid(), name: 'Rifa Online', type: 'rifa', description: 'Sistema de rifas com PIX automático', domain: '', adminUrl: '', status: 'active', icon: '🎫', createdAt: today() },
+    { id: uid(), name: 'Raspadinha', type: 'raspadinha', description: 'Raspadinha digital com prêmios via gateway', domain: '', adminUrl: '', status: 'inactive', icon: '🎰', createdAt: today() },
+  ],
 };
 
 function loadState() {
@@ -88,6 +93,7 @@ function loadState() {
           pixConfig: { ...initialState.pixConfig, ...(parsed.pixConfig || {}) },
           config: { ...initialState.config, ...(parsed.config || {}) },
           user: { ...initialState.user, ...(parsed.user || {}) },
+          projects: parsed.projects || initialState.projects,
         };
     }
   } catch (e) { console.error(e); }
@@ -180,6 +186,12 @@ function reducer(state, action) {
       return { ...state, remarketing: (state.remarketing || []).map(c => c.id === action.payload.id ? { ...c, ...action.payload.data } : c) };
     case 'DELETE_REMARKETING':
       return { ...state, remarketing: (state.remarketing || []).filter(c => c.id !== action.payload) };
+    case 'ADD_PROJECT':
+      return { ...state, projects: [...(state.projects || []), action.payload] };
+    case 'UPDATE_PROJECT':
+      return { ...state, projects: (state.projects || []).map(p => p.id === action.payload.id ? { ...p, ...action.payload.data } : p) };
+    case 'DELETE_PROJECT':
+      return { ...state, projects: (state.projects || []).filter(p => p.id !== action.payload) };
     case 'RESET_DATA':
       localStorage.removeItem(STORAGE_KEY);
       return { ...initialState, activities: [{ id: uid(), text: 'Dados resetados', type: 'warning', time: new Date().toISOString() }] };

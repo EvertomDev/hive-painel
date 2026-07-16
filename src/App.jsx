@@ -25,6 +25,7 @@ import Login from './pages/Login';
 import Redirecionadores from './pages/Redirecionadores';
 import Remarketing from './pages/Remarketing';
 import Postagens from './pages/Postagens';
+import Projetos from './pages/Projetos';
 
 function AppRoutes() {
   const location = useLocation();
@@ -66,6 +67,7 @@ function AppRoutes() {
           <Route path="checkout" element={<Checkout />} />
           <Route path="biolink" element={<BioLink />} />
           <Route path="webhooks" element={<Webhooks />} />
+          <Route path="projetos" element={<Projetos />} />
           <Route path="configuracoes" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
