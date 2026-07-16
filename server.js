@@ -322,7 +322,7 @@ app.post('/api/gateway/balance/:gateway', async (req, res) => {
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();
       const balance = gwConfig.balanceMapping
-        ? pathGet(data, gwConfig.balanceMapping)
+        ? generic.pathGet(data, gwConfig.balanceMapping)
         : data.balance || data.amount || data.total || null;
       return res.json({ ok: true, balance: Number(balance) || 0 });
     }
