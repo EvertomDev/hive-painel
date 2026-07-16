@@ -43,6 +43,17 @@ const AUTH_METHODS = {
 };
 
 async function getAuthHeader(config, credentials) {
+  if (config.auth === 'custom' && config.customAuth) {
+    const headers = {};
+    for (const [key, tmpl] of Object.entries(config.customAuth.headers)) {
+      let val = tmpl;
+      for (const field of config.customAuth.fields || []) {
+        val = val.replace(`{${field}}`, credentials[field] || '');
+      }
+      headers[key] = val;
+    }
+    return headers;
+  }
   const authFn = AUTH_METHODS[config.auth];
   if (!authFn) return {};
   const tokenUrl = config.authTokenUrl;
@@ -136,13 +147,20 @@ async function checkCharge(gatewayConfig, credentials, chargeId) {
   try {
     const headers = {
       'Accept': 'application/json',
+      'Content-Type': 'application/json',
       ...(await getAuthHeader(gatewayConfig, credentials)),
     };
 
     let checkPath = gatewayConfig.endpoints.checkCharge || '/transaction/{id}';
     let url = `${gatewayConfig.baseUrl}${checkPath}`.replace('{id}', chargeId);
+    const method = gatewayConfig.checkMethod || 'GET';
 
-    const res = await fetch(url, { headers });
+    let body;
+    if (method === 'POST' && gatewayConfig.checkBodyTemplate) {
+      body = JSON.stringify(gatewayConfig.checkBodyTemplate({ transactionId: chargeId }));
+    }
+
+    const res = await fetch(url, { method, headers, ...(body ? { body } : {}) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const data = await res.json();
@@ -171,4 +189,4 @@ function normalizeStatus(status) {
   return s;
 }
 
-export { createPixCharge, checkCharge, normalizeStatus };
+export { createPixCharge, checkCharge, normalizeStatus, getAuthHeader, pathGet };

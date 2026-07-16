@@ -90,18 +90,37 @@ const gatewayConfigs = {
   },
   sigilopay: {
     name: 'SigiloPay',
-    baseUrl: 'https://api.sigilopay.com.br/v1',
-    auth: 'oauth2',
-    amountUnit: 'cents',
-    endpoints: { createCharge: '/charges', checkCharge: '/charges/{id}' },
-    bodyTemplate: ({ amount, description, customerName, customerEmail }) => ({
-      amount: Math.round(amount * 100),
-      method: 'pix',
-      description,
-      customer: { name: customerName || 'Cliente', email: customerEmail || 'cliente@email.com' },
+    baseUrl: 'https://app.sigilopay.com.br/api/v1',
+    auth: 'custom',
+    customAuth: {
+      headers: { 'x-public-key': '{publicKey}', 'x-secret-key': '{secretKey}' },
+      fields: ['publicKey', 'secretKey'],
+    },
+    amountUnit: 'real',
+    endpoints: { createCharge: '/gateway/pix/receive', checkCharge: '/gateway/transactions' },
+    createMethod: 'POST',
+    checkMethod: 'POST',
+    bodyTemplate: ({ amount, identifier, client, callbackUrl }) => ({
+      identifier: identifier || ('zeze_' + Date.now()),
+      amount: amount,
+      client: {
+        name: (client?.name) || 'Cliente Zeze',
+        email: (client?.email) || 'cliente@email.com',
+        phone: (client?.phone) || '00000000000',
+        document: (client?.document) || '00000000000',
+      },
+      ...(callbackUrl ? { callbackUrl } : {}),
     }),
-    responseMapping: { paymentId: 'id', qrCodeDataUrl: 'qr_code_base64', qrCodeText: 'qr_code', status: 'status' },
-    credentials: ['clientId', 'clientSecret'],
+    checkBodyTemplate: ({ transactionId }) => ({
+      transactionId: transactionId,
+    }),
+    responseMapping: {
+      paymentId: 'transactionId',
+      qrCodeDataUrl: 'pix.base64',
+      qrCodeText: 'pix.code',
+      status: 'status',
+    },
+    credentials: ['publicKey', 'secretKey'],
   },
   paradise: {
     name: 'Paradise',

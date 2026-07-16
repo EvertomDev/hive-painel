@@ -238,15 +238,28 @@ function Gateways() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [consulting, setConsulting] = useState({});
 
-  const handleConsultBalance = (name) => {
+  const handleConsultBalance = async (name) => {
     setConsulting(prev => ({ ...prev, [name]: true }));
-    setTimeout(() => {
-      const base = name.length * 37 + 120;
-      const cents = name.charCodeAt(0) * 3 % 100;
-      dispatch({ type: 'UPDATE_GATEWAY_BALANCE', payload: { name, balance: base + cents / 100 } });
-      setConsulting(prev => ({ ...prev, [name]: false }));
-      addActivity(`Saldo consultado: ${name}`, 'info');
-    }, 800);
+    try {
+      const g = state.gateways.find(g => g.name === name);
+      const gwKey = name.toLowerCase().replace(/\s+/g, '');
+      const credentials = editFields[name] || {};
+      const res = await fetch('/api/gateway/balance/' + gwKey, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+      });
+      const data = await res.json();
+      if (data.ok && data.balance !== undefined) {
+        dispatch({ type: 'UPDATE_GATEWAY_BALANCE', payload: { name, balance: data.balance } });
+        addActivity(`Saldo ${name}: R$ ${data.balance.toFixed(2)}`, 'info');
+      } else {
+        addActivity(`Saldo ${name}: indisponível`, 'warning');
+      }
+    } catch {
+      addActivity(`Erro ao consultar saldo: ${name}`, 'warning');
+    }
+    setConsulting(prev => ({ ...prev, [name]: false }));
   };
 
   const handleFieldChange = (name, field, value) => {

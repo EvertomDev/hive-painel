@@ -299,6 +299,38 @@ app.post('/api/gateway/check/:gateway', async (req, res) => {
   }
 });
 
+// ========================
+// Balance de gateways
+// ========================
+app.post('/api/gateway/balance/:gateway', async (req, res) => {
+  try {
+    const { gateway } = req.params;
+    const credentials = req.body;
+
+    const gwConfig = gatewayConfigs[gateway];
+    if (!gwConfig) return res.status(400).json({ ok: false, error: `Gateway "${gateway}" não encontrado` });
+
+    if (gwConfig.balanceEndpoint) {
+      const headers = {
+        'Accept': 'application/json',
+        ...(await generic.getAuthHeader(gwConfig, credentials)),
+      };
+      const url = `${gwConfig.baseUrl}${gwConfig.balanceEndpoint}`;
+      const resp = await fetch(url, { headers });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      const balance = gwConfig.balanceMapping
+        ? pathGet(data, gwConfig.balanceMapping)
+        : data.balance || data.amount || data.total || null;
+      return res.json({ ok: true, balance: Number(balance) || 0 });
+    }
+
+    res.json({ ok: false, error: 'Balance não suportado para este gateway' });
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
+});
+
 // ─── Helper: confirm order by paymentId ─────────────────────
 function _findAndConfirmOrder(chargeId) {
   let matched = botSessions.get(`order_${chargeId}`);
