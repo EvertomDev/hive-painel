@@ -1,197 +1,309 @@
 import React, { useState } from 'react';
 import { useApp } from '../store/AppContext';
 import { PageTransition, GlassCard } from '../components/ui/AnimatedContainer';
-import { FolderKanban, Plus, X, ExternalLink, Settings, Trash2, Search, Globe, Gamepad2, Ticket, Sparkles } from 'lucide-react';
+import { FolderKanban, Plus, X, ExternalLink, Settings, Trash2, Search, Globe, Gamepad2, Ticket, Sparkles, BarChart3, Users, DollarSign, Copy, Check, Zap, Link as LinkIcon, Eye } from 'lucide-react';
 
-const TYPE_ICONS = { jogo: Gamepad2, rifa: Ticket, raspadinha: Sparkles, servico: Settings };
-const TYPE_COLORS = { jogo: 'text-blue-400', rifa: 'text-purple-400', raspadinha: 'text-orange-400', servico: 'text-emerald-400' };
-const TYPE_BG = { jogo: 'bg-blue-500/10', rifa: 'bg-purple-500/10', raspadinha: 'bg-orange-500/10', servico: 'bg-emerald-500/10' };
-
-const PROJECT_TYPES = [
-  { value: 'jogo', label: 'Jogo', icon: '🎮' },
-  { value: 'rifa', label: 'Rifa', icon: '🎫' },
-  { value: 'raspadinha', label: 'Raspadinha', icon: '🎰' },
-  { value: 'servico', label: 'Serviço', icon: '⚙️' },
+const PROJECTS_DEFAULT = [
+  {
+    id: 'helix',
+    name: 'Helix Jump',
+    type: 'jogo',
+    description: 'Jogo arcade com depósito via SigiloPay. Sistema completo com saque manual, cupons e afiliados.',
+    icon: '🎮',
+    domain: '',
+    adminUrl: '',
+    webhookUrl: '/api/sigilopay_webhook.php',
+    status: 'active',
+    stats: { users: 0, revenue: 0, deposits: 0 },
+    settings: { sigilopayPublicKey: '', sigilopaySecretKey: '' },
+  },
+  {
+    id: 'rifa',
+    name: 'Rifa Online',
+    type: 'rifa',
+    description: 'Sistema de rifas com pagamento PIX via SigiloPay.woocommerce.',
+    icon: '🎫',
+    domain: '',
+    adminUrl: '',
+    webhookUrl: '',
+    status: 'active',
+    stats: { users: 0, revenue: 0, raffles: 0 },
+    settings: {},
+  },
+  {
+    id: 'raspadinha',
+    name: 'Raspadinha',
+    type: 'raspadinha',
+    description: 'Raspadinha digital com prêmios e gateway de pagamento integrado.',
+    icon: '🎰',
+    domain: '',
+    adminUrl: '',
+    webhookUrl: '',
+    status: 'inactive',
+    stats: { users: 0, revenue: 0, cards: 0 },
+    settings: {},
+  },
 ];
 
-function ProjectCard({ project, onEdit, onDelete }) {
-  const Icon = TYPE_ICONS[project.type] || Settings;
-  const color = TYPE_COLORS[project.type] || 'text-gray-400';
-  const bg = TYPE_BG[project.type] || 'bg-gray-500/10';
+const TYPE_COLORS = { jogo: 'text-blue-400', rifa: 'text-purple-400', raspadinha: 'text-orange-400' };
+const TYPE_BG = { jogo: 'bg-blue-500/10', rifa: 'bg-purple-500/10', raspadinha: 'bg-orange-500/10' };
 
+function StatCard({ icon: Icon, label, value, color }) {
   return (
-    <GlassCard className="p-5 transition-all duration-300 hover:scale-[1.01]">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${bg}`}>
-            {project.icon || '📁'}
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-white">{project.name}</h3>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${bg} ${color}`}>
-                {project.type}
-              </span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                project.status === 'active' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/[0.06] text-[#52525b]'
-              }`}>
-                {project.status === 'active' ? 'Ativo' : 'Inativo'}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          <button onClick={() => onEdit(project)}
-            className="p-1.5 rounded-lg text-[#52525b] hover:text-white hover:bg-white/[0.06] transition-colors">
-            <Settings size={13} />
-          </button>
-          <button onClick={() => onDelete(project.id)}
-            className="p-1.5 rounded-lg text-[#52525b] hover:text-red-400 hover:bg-red-500/10 transition-colors">
-            <Trash2 size={13} />
-          </button>
-        </div>
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color}`}>
+        <Icon size={16} />
       </div>
-
-      <p className="text-xs text-[#a1a1aa] mb-4 line-clamp-2">{project.description}</p>
-
-      <div className="space-y-2">
-        {project.domain && (
-          <div className="flex items-center gap-2 text-xs">
-            <Globe size={11} className="text-[#52525b] shrink-0" />
-            <a href={`https://${project.domain}`} target="_blank" rel="noopener noreferrer"
-              className="text-[var(--brand-400)] hover:underline truncate">{project.domain}</a>
-            <ExternalLink size={9} className="text-[#52525b] shrink-0" />
-          </div>
-        )}
-        {project.adminUrl && (
-          <div className="flex items-center gap-2 text-xs">
-            <Settings size={11} className="text-[#52525b] shrink-0" />
-            <a href={project.adminUrl} target="_blank" rel="noopener noreferrer"
-              className="text-[var(--brand-400)] hover:underline truncate">{project.adminUrl}</a>
-            <ExternalLink size={9} className="text-[#52525b] shrink-0" />
-          </div>
-        )}
+      <div>
+        <div className="text-lg font-bold text-white">{value}</div>
+        <div className="text-[10px] text-[#a1a1aa] uppercase tracking-wider">{label}</div>
       </div>
-    </GlassCard>
+    </div>
   );
 }
 
-function ProjectModal({ project, onClose, onSave }) {
-  const [form, setForm] = useState(project || {
-    name: '', type: 'jogo', description: '', domain: '', adminUrl: '', status: 'active', icon: '🎮',
-  });
+function ProjectAdmin({ project, onClose, onSave }) {
+  const [tab, setTab] = useState('dashboard');
+  const [form, setForm] = useState({ ...project });
+  const [copied, setCopied] = useState(null);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const copyText = (text, key) => {
+    navigator.clipboard.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  const handleSave = () => {
     onSave(form);
+    onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-[#111118] rounded-2xl border border-white/[0.08] p-6 w-full max-w-md animate-fade-in shadow-2xl">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-base font-bold text-white">{project ? 'Editar Projeto' : 'Novo Projeto'}</h3>
-          <button onClick={onClose} className="p-1 rounded-lg text-[#52525b] hover:text-white hover:bg-white/[0.06]">
-            <X size={16} />
-          </button>
+      <div className="relative bg-[#111118] rounded-2xl border border-white/[0.08] w-full max-w-3xl max-h-[85vh] overflow-hidden animate-fade-in shadow-2xl flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">{project.icon}</span>
+            <div>
+              <h3 className="text-base font-bold text-white">{project.name}</h3>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${TYPE_BG[project.type]} ${TYPE_COLORS[project.type]}`}>
+                {project.type}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {project.domain && (
+              <a href={`https://${project.domain}`} target="_blank" rel="noopener noreferrer"
+                className="px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--brand-500)]/15 text-[var(--brand-400)] hover:bg-[var(--brand-500)]/25 transition-colors flex items-center gap-1.5">
+                <Eye size={12} /> Ver Site
+              </a>
+            )}
+            <button onClick={onClose} className="p-1.5 rounded-lg text-[#52525b] hover:text-white hover:bg-white/[0.06]">
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-1.5">Nome</label>
-            <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required
-              className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:ring-1 focus:ring-[var(--brand-500)]"
-              placeholder="Ex: Helix Jump" />
-          </div>
+        {/* Tabs */}
+        <div className="flex gap-1 px-6 py-3 border-b border-white/[0.06]">
+          {[
+            { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+            { id: 'settings', label: 'Configurações', icon: Settings },
+            { id: 'links', label: 'Links & Webhook', icon: LinkIcon },
+          ].map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                tab === t.id ? 'bg-white/[0.08] text-white' : 'text-[#52525b] hover:text-white hover:bg-white/[0.04]'
+              }`}>
+              <t.icon size={12} /> {t.label}
+            </button>
+          ))}
+        </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-1.5">Tipo</label>
-              <select value={form.type} onChange={e => {
-                const t = PROJECT_TYPES.find(p => p.value === e.target.value);
-                setForm({ ...form, type: e.target.value, icon: t?.icon || '📁' });
-              }}
-                className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:ring-1 focus:ring-[var(--brand-500)] appearance-none">
-                {PROJECT_TYPES.map(t => <option key={t.value} value={t.value}>{t.icon} {t.label}</option>)}
-              </select>
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          {tab === 'dashboard' && (
+            <div className="space-y-5">
+              <div className="grid grid-cols-3 gap-3">
+                <StatCard icon={Users} label="Usuários" value={project.stats?.users || 0} color="bg-blue-500/15 text-blue-400" />
+                <StatCard icon={DollarSign} label="Receita" value={`R$ ${(project.stats?.revenue || 0).toFixed(2)}`} color="bg-emerald-500/15 text-emerald-400" />
+                <StatCard icon={Zap} label={project.type === 'rifa' ? 'Rifas' : project.type === 'raspadinha' ? 'Raspadinhas' : 'Depósitos'} value={project.stats?.deposits || project.stats?.raffles || project.stats?.cards || 0} color="bg-purple-500/15 text-purple-400" />
+              </div>
+
+              <GlassCard className="p-4">
+                <h4 className="text-xs font-bold text-white mb-3 uppercase tracking-wider">Atividade Recente</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-[#a1a1aa]">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span>Sistema inicializado</span>
+                    <span className="ml-auto text-[#52525b]">agora</span>
+                  </div>
+                </div>
+                <p className="text-[10px] text-[#52525b] mt-3">Os dados reais aparecem aqui quando o jogo estiver hospedado e conectado.</p>
+              </GlassCard>
+
+              {project.type === 'jogo' && (
+                <GlassCard className="p-4">
+                  <h4 className="text-xs font-bold text-white mb-2 uppercase tracking-wider">Sobre o Helix Jump</h4>
+                  <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                    Jogo arcade com sistema de depósito via SigiloPay. Os usuários jogam, acumulam saldo e podem sacar.
+                    O saque é manual — você aprova pelo painel admin do jogo.
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <span className="text-[10px] px-2 py-1 rounded-full bg-blue-500/10 text-blue-400">PHP + MySQL</span>
+                    <span className="text-[10px] px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400">SigiloPay</span>
+                    <span className="text-[10px] px-2 py-1 rounded-full bg-purple-500/10 text-purple-400">Saque Manual</span>
+                  </div>
+                </GlassCard>
+              )}
             </div>
-            <div>
-              <label className="block text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-1.5">Status</label>
-              <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:ring-1 focus:ring-[var(--brand-500)] appearance-none">
-                <option value="active">Ativo</option>
-                <option value="inactive">Inativo</option>
-              </select>
+          )}
+
+          {tab === 'settings' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-1.5">Nome</label>
+                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:ring-1 focus:ring-[var(--brand-500)]" />
+              </div>
+              <div>
+                <label className="block text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-1.5">Domínio</label>
+                <input value={form.domain} onChange={e => setForm({ ...form, domain: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:ring-1 focus:ring-[var(--brand-500)]"
+                  placeholder="ex: helixjump.com.br" />
+              </div>
+              <div>
+                <label className="block text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-1.5">URL do Painel Admin</label>
+                <input value={form.adminUrl} onChange={e => setForm({ ...form, adminUrl: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:ring-1 focus:ring-[var(--brand-500)]"
+                  placeholder="https://helixjump.com.br/admin" />
+              </div>
+              <div>
+                <label className="block text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-1.5">Status</label>
+                <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:ring-1 focus:ring-[var(--brand-500)] appearance-none">
+                  <option value="active">Ativo</option>
+                  <option value="inactive">Inativo</option>
+                </select>
+              </div>
+
+              {project.type === 'jogo' && (
+                <>
+                  <div className="h-px bg-white/[0.06] my-2" />
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Chaves SigiloPay</h4>
+                  <div>
+                    <label className="block text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-1.5">Public Key</label>
+                    <input type="password" value={form.settings?.sigilopayPublicKey || ''} 
+                      onChange={e => setForm({ ...form, settings: { ...form.settings, sigilopayPublicKey: e.target.value } })}
+                      className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:ring-1 focus:ring-[var(--brand-500)]"
+                      placeholder="Sua public key da SigiloPay" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-1.5">Secret Key</label>
+                    <input type="password" value={form.settings?.sigilopaySecretKey || ''}
+                      onChange={e => setForm({ ...form, settings: { ...form.settings, sigilopaySecretKey: e.target.value } })}
+                      className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:ring-1 focus:ring-[var(--brand-500)]"
+                      placeholder="Sua secret key da SigiloPay" />
+                  </div>
+                </>
+              )}
             </div>
-          </div>
+          )}
 
-          <div>
-            <label className="block text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-1.5">Descrição</label>
-            <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:ring-1 focus:ring-[var(--brand-500)]"
-              placeholder="Descreva o projeto..." />
-          </div>
+          {tab === 'links' && (
+            <div className="space-y-4">
+              <GlassCard className="p-4">
+                <h4 className="text-xs font-bold text-white mb-3 uppercase tracking-wider">URLs Importantes</h4>
+                <div className="space-y-3">
+                  {project.domain && (
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                      <div>
+                        <div className="text-[10px] text-[#a1a1aa] uppercase">Site do Jogo</div>
+                        <div className="text-xs text-white font-mono">https://{project.domain}</div>
+                      </div>
+                      <button onClick={() => copyText(`https://${project.domain}`, 'site')}
+                        className="p-1.5 rounded-md text-[#52525b] hover:text-white hover:bg-white/[0.06]">
+                        {copied === 'site' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                      </button>
+                    </div>
+                  )}
+                  {project.adminUrl && (
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                      <div>
+                        <div className="text-[10px] text-[#a1a1aa] uppercase">Painel Admin</div>
+                        <div className="text-xs text-white font-mono">{project.adminUrl}</div>
+                      </div>
+                      <button onClick={() => copyText(project.adminUrl, 'admin')}
+                        className="p-1.5 rounded-md text-[#52525b] hover:text-white hover:bg-white/[0.06]">
+                        {copied === 'admin' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                      </button>
+                    </div>
+                  )}
+                  {project.webhookUrl && (
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                      <div>
+                        <div className="text-[10px] text-[#a1a1aa] uppercase">Webhook URL (SigiloPay)</div>
+                        <div className="text-xs text-white font-mono">{project.domain ? `https://${project.domain}${project.webhookUrl}` : project.webhookUrl}</div>
+                      </div>
+                      <button onClick={() => copyText(project.domain ? `https://${project.domain}${project.webhookUrl}` : project.webhookUrl, 'webhook')}
+                        className="p-1.5 rounded-md text-[#52525b] hover:text-white hover:bg-white/[0.06]">
+                        {copied === 'webhook' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </GlassCard>
 
-          <div>
-            <label className="block text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-1.5">Domínio</label>
-            <input value={form.domain} onChange={e => setForm({ ...form, domain: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:ring-1 focus:ring-[var(--brand-500)]"
-              placeholder="ex: jogohelix.com.br" />
-          </div>
+              {project.type === 'jogo' && (
+                <GlassCard className="p-4">
+                  <h4 className="text-xs font-bold text-white mb-2 uppercase tracking-wider">Como configurar</h4>
+                  <ol className="text-xs text-[#a1a1aa] space-y-2 list-decimal list-inside">
+                    <li>Hospede os arquivos do Helix Jump em uma hospedagem PHP + MySQL</li>
+                    <li>Importe o <code className="text-[var(--brand-400)]">bancodedados.sql</code> no phpMyAdmin</li>
+                    <li>Configure o <code className="text-[var(--brand-400)]">config.php</code> com os dados do banco</li>
+                    <li>Cadastre suas chaves SigiloPay no painel admin do jogo</li>
+                    <li>Cadastre o webhook na SigiloPay com a URL acima</li>
+                    <li>Teste com um depósito real</li>
+                  </ol>
+                </GlassCard>
+              )}
+            </div>
+          )}
+        </div>
 
-          <div>
-            <label className="block text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-1.5">URL do Painel Admin</label>
-            <input value={form.adminUrl} onChange={e => setForm({ ...form, adminUrl: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:ring-1 focus:ring-[var(--brand-500)]"
-              placeholder="https://admin.jogohelix.com.br" />
-          </div>
-
-          <button type="submit"
-            className="w-full py-2.5 bg-[var(--brand-500)] hover:bg-[var(--brand-600)] text-white text-sm font-semibold rounded-xl transition-all">
-            {project ? 'Salvar' : 'Criar Projeto'}
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2">
+          <button onClick={onClose}
+            className="px-4 py-2 text-xs font-medium rounded-lg bg-white/[0.04] text-[#a1a1aa] hover:text-white hover:bg-white/[0.08] transition-colors">
+            Cancelar
           </button>
-        </form>
+          <button onClick={handleSave}
+            className="px-4 py-2 text-xs font-semibold rounded-lg bg-[var(--brand-500)] hover:bg-[var(--brand-600)] text-white transition-all">
+            Salvar
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
 function Projetos() {
-  const { state, dispatch, addActivity, addNotification } = useApp();
-  const [showModal, setShowModal] = useState(false);
-  const [editing, setEditing] = useState(null);
+  const { state, dispatch, addActivity } = useApp();
+  const [adminProject, setAdminProject] = useState(null);
   const [search, setSearch] = useState('');
 
-  const projects = (state.projects || []).filter(p =>
+  const projects = (state.projects || PROJECTS_DEFAULT).filter(p =>
     !search || p.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSave = (form) => {
-    if (editing) {
-      dispatch({ type: 'UPDATE_PROJECT', payload: { id: editing.id, data: form } });
-      addActivity(`Projeto ${form.name} atualizado`, 'success');
-    } else {
-      dispatch({ type: 'ADD_PROJECT', payload: { ...form, id: Date.now().toString(36) + Math.random().toString(36).substr(2, 6) } });
-      addActivity(`Projeto ${form.name} criado`, 'success');
-      addNotification('Novo projeto', `${form.name} foi adicionado.`);
-    }
-    setShowModal(false);
-    setEditing(null);
+  const handleSaveProject = (form) => {
+    dispatch({ type: 'UPDATE_PROJECT', payload: { id: form.id, data: form } });
+    addActivity(`Projeto ${form.name} atualizado`, 'success');
   };
 
-  const handleDelete = (id) => {
-    const p = projects.find(p => p.id === id);
-    dispatch({ type: 'DELETE_PROJECT', payload: id });
-    addActivity(`Projeto ${p?.name} removido`, 'warning');
-  };
-
-  const handleEdit = (project) => {
-    setEditing(project);
-    setShowModal(true);
-  };
-
-  const activeCount = (state.projects || []).filter(p => p.status === 'active').length;
+  const activeCount = projects.filter(p => p.status === 'active').length;
 
   return (
     <PageTransition>
@@ -206,10 +318,6 @@ function Projetos() {
               {activeCount} ativos · {projects.length} no total
             </p>
           </div>
-          <button onClick={() => { setEditing(null); setShowModal(true); }}
-            className="px-5 py-2.5 bg-[var(--brand-500)] hover:bg-[var(--brand-600)] text-white text-sm font-semibold rounded-xl flex items-center gap-2 transition-all">
-            <Plus size={16} /> Novo Projeto
-          </button>
         </div>
 
         <div className="relative max-w-xs mb-6">
@@ -219,30 +327,59 @@ function Projetos() {
             placeholder="Buscar projeto..." />
         </div>
 
-        {projects.length === 0 ? (
-          <GlassCard className="p-16 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center mx-auto mb-4">
-              <FolderKanban size={28} className="text-[#52525b]" />
-            </div>
-            <p className="text-white/70 mb-2">Nenhum projeto encontrado.</p>
-            <p className="text-sm text-[#52525b] mb-4">Adicione seu primeiro projeto para começar.</p>
-            <button onClick={() => { setEditing(null); setShowModal(true); }}
-              className="px-5 py-2.5 bg-[var(--brand-500)] hover:bg-[var(--brand-600)] text-white text-sm font-semibold rounded-xl transition-all flex items-center gap-2 mx-auto">
-              <Plus size={16} /> Novo Projeto
-            </button>
-          </GlassCard>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {projects.map((p, i) => (
-              <div key={p.id} className="animate-fade-in" style={{ animationDelay: `${i * 40}ms` }}>
-                <ProjectCard project={p} onEdit={handleEdit} onDelete={handleDelete} />
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {projects.map((p, i) => (
+            <div key={p.id} className="animate-fade-in" style={{ animationDelay: `${i * 40}ms` }}>
+              <GlassCard className="p-5 transition-all duration-300 hover:scale-[1.01]">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${TYPE_BG[p.type] || 'bg-gray-500/10'}`}>
+                      {p.icon}
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">{p.name}</h3>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${TYPE_BG[p.type]} ${TYPE_COLORS[p.type]}`}>
+                          {p.type}
+                        </span>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                          p.status === 'active' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/[0.06] text-[#52525b]'
+                        }`}>
+                          {p.status === 'active' ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-        {showModal && (
-          <ProjectModal project={editing} onClose={() => { setShowModal(false); setEditing(null); }} onSave={handleSave} />
+                <p className="text-xs text-[#a1a1aa] mb-4 line-clamp-2">{p.description}</p>
+
+                <div className="space-y-2 mb-4">
+                  {p.domain && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <Globe size={11} className="text-[#52525b] shrink-0" />
+                      <span className="text-[#a1a1aa] truncate">{p.domain}</span>
+                    </div>
+                  )}
+                  {p.adminUrl && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <Settings size={11} className="text-[#52525b] shrink-0" />
+                      <span className="text-[#a1a1aa] truncate">{p.adminUrl}</span>
+                    </div>
+                  )}
+                </div>
+
+                <button onClick={() => setAdminProject(p)}
+                  className="w-full px-4 py-2.5 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 bg-[var(--brand-500)]/15 text-[var(--brand-400)] hover:bg-[var(--brand-500)]/25 border border-[var(--brand-500)]/20">
+                  <Settings size={13} /> Painel Admin
+                </button>
+              </GlassCard>
+            </div>
+          ))}
+        </div>
+
+        {adminProject && (
+          <ProjectAdmin project={adminProject} onClose={() => setAdminProject(null)} onSave={handleSaveProject} />
         )}
       </div>
     </PageTransition>

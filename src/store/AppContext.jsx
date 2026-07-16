@@ -68,9 +68,9 @@ const initialState = {
     mercadopagoEmail: '',
   },
   projects: [
-    { id: uid(), name: 'Helix Jump', type: 'jogo', description: 'Jogo arcade com pagamento integrado via SigiloPay', domain: '', adminUrl: '', status: 'active', icon: '🎮', createdAt: today() },
-    { id: uid(), name: 'Rifa Online', type: 'rifa', description: 'Sistema de rifas com PIX automático', domain: '', adminUrl: '', status: 'active', icon: '🎫', createdAt: today() },
-    { id: uid(), name: 'Raspadinha', type: 'raspadinha', description: 'Raspadinha digital com prêmios via gateway', domain: '', adminUrl: '', status: 'inactive', icon: '🎰', createdAt: today() },
+    { id: 'helix', name: 'Helix Jump', type: 'jogo', description: 'Jogo arcade com depósito via SigiloPay. Sistema completo com saque manual, cupons e afiliados.', icon: '🎮', domain: '', adminUrl: '', webhookUrl: '/api/sigilopay_webhook.php', status: 'active', stats: { users: 0, revenue: 0, deposits: 0 }, settings: { sigilopayPublicKey: '', sigilopaySecretKey: '' } },
+    { id: 'rifa', name: 'Rifa Online', type: 'rifa', description: 'Sistema de rifas com pagamento PIX via SigiloPay.woocommerce.', icon: '🎫', domain: '', adminUrl: '', webhookUrl: '', status: 'active', stats: { users: 0, revenue: 0, raffles: 0 }, settings: {} },
+    { id: 'raspadinha', name: 'Raspadinha', type: 'raspadinha', description: 'Raspadinha digital com prêmios e gateway de pagamento integrado.', icon: '🎰', domain: '', adminUrl: '', webhookUrl: '', status: 'inactive', stats: { users: 0, revenue: 0, cards: 0 }, settings: {} },
   ],
 };
 
