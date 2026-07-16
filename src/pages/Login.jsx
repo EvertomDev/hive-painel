@@ -19,7 +19,7 @@ function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md animate-fade-in">
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-3xl hover:scale-105 transition-transform">Z</div>
+          <img src="/logo/hive-login.png" alt="Hive" className="h-14 hover:scale-105 transition-transform" />
           <span className="text-3xl font-bold text-foreground">Hive</span>
         </div>
         <div className="bg-card rounded-2xl shadow-xl border border-border p-8">

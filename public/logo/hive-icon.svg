@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+    <defs>
+        <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#3B82F6" />
+            <stop offset="100%" stop-color="#1D4ED8" />
+        </linearGradient>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feComponentTransfer in="blur" result="glow">
+                <feFuncA type="linear" slope="0.4"/>
+            </feComponentTransfer>
+            <feMerge>
+                <feMergeNode in="glow"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+    <!-- Background do hexágono para profundidade -->
+    <polygon points="3,16 9.5,5.5 22.5,5.5 29,16 22.5,26.5 9.5,26.5" fill="rgba(59, 130, 246, 0.04)" />
+    <!-- Contorno Glass -->
+    <polygon points="3,16 9.5,5.5 22.5,5.5 29,16 22.5,26.5 9.5,26.5" fill="none" stroke="url(#hexGrad)" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"/>
+    <!-- Linhas de conexão (param a 2px da borda) -->
+    <line x1="16" y1="16" x2="5" y2="16" stroke="#3B82F6" stroke-width="1" opacity="0.6" stroke-linecap="round"/>
+    <line x1="16" y1="16" x2="21.44" y2="7.2" stroke="#3B82F6" stroke-width="1" opacity="0.6" stroke-linecap="round"/>
+    <line x1="16" y1="16" x2="21.44" y2="24.8" stroke="#3B82F6" stroke-width="1" opacity="0.6" stroke-linecap="round"/>
+    <!-- Hub Central -->
+    <circle cx="16" cy="16" r="2.5" fill="#60A5FA" filter="url(#glow)"/>
+</svg>
