@@ -140,8 +140,6 @@ function GatewayCard({ gateway, index, expanded, setExpanded, editFields, handle
     handleSaveConfig(gateway.name);
     await new Promise(r => setTimeout(r, 400));
     handleToggle(gateway);
-    await new Promise(r => setTimeout(r, 300));
-    await handleConsultBalance(gateway.name);
     setConnecting(false);
   }
 

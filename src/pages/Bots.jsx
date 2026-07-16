@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../store/AppContext';
-import { PageTransition, AnimatedCard, AnimatedButton } from '../components/ui/AnimatedContainer';
+import { PageTransition, AnimatedCard, AnimatedButton, GlassCard } from '../components/ui/AnimatedContainer';
+import { SelectDropdown } from '../components/ui/SelectDropdown';
 import { Loader2, Bot, Users, DollarSign, Settings, ShoppingCart, QrCode, Copy, Check, ExternalLink, Trash2, Play, Square, Send, RefreshCw, CreditCard, Shield, Info } from 'lucide-react';
 
 const TABS = [
@@ -577,111 +578,73 @@ function Bots() {
         {/* Tab: PIX Config */}
         {tab === 'pix' && (
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-card-foreground">Configuração de Pagamentos</h2>
-              <a href="/gateways" className="text-sm text-primary hover:underline flex items-center gap-1"><Settings size={14} /> Gerenciar Gateways</a>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-white">Pagamentos</h2>
+              <a href="/gateways" className="text-xs text-[#a1a1aa] hover:text-white transition-colors flex items-center gap-1"><Settings size={12} /> Gateways</a>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <AnimatedCard className="bg-card rounded-xl border border-border p-6">
-                  <h3 className="font-bold text-card-foreground mb-4 flex items-center gap-2"><QrCode size={18} /> Gateway PIX Ativo</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-card-foreground mb-1">Gateway para receber pagamentos</label>
-                      <select value={state.pixConfig.gateway || 'static'} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { gateway: e.target.value } })}
-                        className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none">
-                        <option value="static">PIX Estático (QR Code local)</option>
-                        {state.gateways.filter(g => g.type.includes('PIX')).map(g => (
-                          <option key={g.name} value={g.name.toLowerCase().replace(/\s+/g, '_')}>
-                            {g.name} {g.connected ? '✅' : '❌'}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-card-foreground mb-1">Chave PIX</label>
-                      <input value={state.pixConfig.pixKey} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { pixKey: e.target.value } })}
-                        className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="CPF, CNPJ, email ou telefone" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-card-foreground mb-1">Nome do Titular</label>
-                      <input value={state.pixConfig.merchantName} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { merchantName: e.target.value } })}
-                        className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="Zeze Content" />
-                    </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <GlassCard className="p-5">
+                <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2"><QrCode size={16} className="text-[var(--brand-500)]" /> Gateway PIX</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] text-[#a1a1aa] mb-1.5 font-medium uppercase tracking-wider">Gateway</label>
+                    <SelectDropdown
+                      placeholder="Selecione o gateway"
+                      value={state.pixConfig.gateway || 'static'}
+                      onChange={v => dispatch({ type: 'SET_PIX_CONFIG', payload: { gateway: v } })}
+                      options={[
+                        { value: 'static', label: 'PIX Estático (local)', description: 'QR Code gerado localmente' },
+                        ...state.gateways.filter(g => g.type.includes('PIX')).map(g => ({
+                          value: g.name.toLowerCase().replace(/\s+/g, '_'),
+                          label: g.name,
+                          description: g.type,
+                          badge: g.connected ? 'Online' : 'Offline',
+                        })),
+                      ]}
+                    />
                   </div>
-                </AnimatedCard>
-
-                <AnimatedCard className="bg-card rounded-xl border border-border p-6">
-                  <h3 className="font-bold text-card-foreground mb-4 flex items-center gap-2"><CreditCard size={18} /> Gateways Disponíveis</h3>
-                  {state.gateways.filter(g => g.type.includes('PIX')).length === 0 ? (
-                    <div className="text-center py-6">
-                      <p className="text-sm text-muted-foreground mb-3">Nenhum gateway PIX configurado.</p>
-                      <a href="/gateways" className="text-sm text-primary hover:underline">Configurar gateways →</a>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {state.gateways.filter(g => g.type.includes('PIX')).map(g => (
-                        <div key={g.name} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
-                          <div className="flex items-center gap-3">
-                            <Shield size={18} className={g.connected ? 'text-chart-1' : 'text-muted-foreground'} />
-                            <div>
-                              <span className="text-sm font-medium text-card-foreground">{g.name}</span>
-                              <span className="text-xs text-muted-foreground ml-2">{g.type}</span>
-                            </div>
-                          </div>
-                          <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${g.connected ? 'bg-chart-1/15 text-chart-1' : 'bg-muted text-muted-foreground'}`}>
-                            {g.connected ? 'Conectado' : 'Desconectado'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </AnimatedCard>
-              </div>
-
-              <div className="space-y-4">
-                <AnimatedCard className="bg-card rounded-xl border border-border p-6">
-                  <h3 className="font-bold text-card-foreground mb-3 flex items-center gap-2"><Info size={18} /> Status Pix</h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Gateway Ativo:</span>
-                      <span className="text-card-foreground font-medium">
-                        {state.pixConfig.gateway === 'static' ? 'QR Code Local' : state.pixConfig.gateway}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Chave PIX:</span>
-                      <span className="text-card-foreground font-medium text-xs truncate max-w-[140px]">{state.pixConfig.pixKey}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Vendas via Bot:</span>
-                      <span className="text-card-foreground font-medium">{state.orders.length}</span>
-                    </div>
-                    <div className="p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground mt-2">
-                      💡 Configure a chave PIX correta e escolha um gateway conectado para receber pagamentos automaticamente.
-                    </div>
+                  <div>
+                    <label className="block text-[11px] text-[#a1a1aa] mb-1.5 font-medium uppercase tracking-wider">Chave PIX</label>
+                    <input value={state.pixConfig.pixKey} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { pixKey: e.target.value } })}
+                      className="w-full px-3 py-2.5 text-sm rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder-[#52525b] outline-none focus:ring-1 focus:ring-[var(--brand-500)]"
+                      placeholder="CPF, CNPJ, email ou telefone" />
                   </div>
-                </AnimatedCard>
+                  <div>
+                    <label className="block text-[11px] text-[#a1a1aa] mb-1.5 font-medium uppercase tracking-wider">Titular</label>
+                    <input value={state.pixConfig.merchantName} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { merchantName: e.target.value } })}
+                      className="w-full px-3 py-2.5 text-sm rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder-[#52525b] outline-none focus:ring-1 focus:ring-[var(--brand-500)]"
+                      placeholder="Zeze Content" />
+                  </div>
+                </div>
+              </GlassCard>
 
-                <AnimatedCard className="bg-card rounded-xl border border-border p-6">
-                  <h3 className="font-bold text-card-foreground mb-3">Últimas Transações</h3>
-                  {state.orders.filter(o => o.status === 'pending' || o.status === 'approved').length === 0 ? (
-                    <p className="text-xs text-muted-foreground">Nenhuma transação recente.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {state.orders.filter(o => o.status === 'pending' || o.status === 'approved').slice(0, 5).map(o => (
-                        <div key={o.id} className="flex items-center justify-between text-xs">
-                          <span className="text-card-foreground truncate max-w-[120px]">{o.customerName}</span>
-                          <span className={`font-medium ${o.status === 'approved' ? 'text-chart-1' : 'text-chart-4'}`}>
-                            {helpers.formatMoney(o.value)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </AnimatedCard>
-              </div>
+              <GlassCard className="p-5">
+                <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2"><Info size={16} className="text-[var(--brand-500)]" /> Status</h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between py-2 border-b border-white/[0.06]">
+                    <span className="text-[#a1a1aa]">Gateway Ativo</span>
+                    <span className="text-white font-medium text-xs">
+                      {state.pixConfig.gateway === 'static' ? 'PIX Estático' : state.pixConfig.gateway.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-white/[0.06]">
+                    <span className="text-[#a1a1aa]">Chave PIX</span>
+                    <span className="text-white font-medium text-xs truncate max-w-[180px]">{state.pixConfig.pixKey}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-white/[0.06]">
+                    <span className="text-[#a1a1aa]">Vendas via Bot</span>
+                    <span className="text-white font-medium">{state.orders.length}</span>
+                  </div>
+                  <div className="flex justify-between py-2">
+                    <span className="text-[#a1a1aa]">Transações Pendentes</span>
+                    <span className="text-[#f59e0b] font-medium">{state.orders.filter(o => o.status === 'pending').length}</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/[0.03] text-[11px] text-[#52525b] mt-2">
+                    Configure a chave PIX e escolha um gateway conectado para receber pagamentos automaticamente nos bots.
+                  </div>
+                </div>
+              </GlassCard>
             </div>
           </div>
         )}
