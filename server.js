@@ -158,7 +158,7 @@ app.post('/api/content/start-bot', async (req, res) => {
       token,
       id,
       groups: groups || [],
-      pixConfig: pixConfig || { pixKey: 'zeze@pix.com', merchantName: 'Zeze', gateways: {}, gateway: 'static' },
+      pixConfig: pixConfig || { pixKey: 'hive@pix.com', merchantName: 'Hive', gateways: {}, gateway: 'static' },
     }, {
       onOrder: (order) => {
         botSessions.set(`order_${order.paymentId}`, order);
@@ -215,7 +215,7 @@ app.post('/api/content/send-message', async (req, res) => {
 app.post('/api/content/generate-pix', async (req, res) => {
   try {
     const { pixKey, merchantName, amount, description, txId } = req.body;
-    const result = await generatePixQrCode(pixKey || 'zeze@pix.com', amount, merchantName || 'Zeze', description, txId);
+    const result = await generatePixQrCode(pixKey || 'hive@pix.com', amount, merchantName || 'Hive', description, txId);
     res.json({ ok: true, ...result });
   } catch (error) {
     res.status(400).json({ ok: false, error: error.message });
@@ -369,6 +369,6 @@ app.get(/.*/, (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Zeze Painel rodando em http://0.0.0.0:${PORT}`);
+  console.log(`Hive Painel rodando em http://0.0.0.0:${PORT}`);
   console.log(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
 });
