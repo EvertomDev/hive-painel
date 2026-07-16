@@ -24,6 +24,12 @@ import Accounts from './pages/Accounts';
 import Messages from './pages/Messages';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+import Stories from './pages/Stories';
+import Aulas from './pages/Aulas';
+import Redirecionadores from './pages/Redirecionadores';
+import Remarketing from './pages/Remarketing';
+import Postagens from './pages/Postagens';
+import RoletaHot from './pages/RoletaHot';
 
 function AppRoutes() {
   const location = useLocation();
@@ -48,17 +54,23 @@ function AppRoutes() {
     <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
+          <Route path="stories" element={<Stories />} />
           <Route path="bots" element={<Bots />} />
           <Route path="analises" element={<Analises />} />
           <Route path="financeiro" element={<Financeiro />} />
           <Route path="clientes" element={<Clients />} />
           <Route path="comunidade" element={<Comunidade />} />
+          <Route path="aulas" element={<Aulas />} />
           <Route path="afiliado" element={<Afiliado />} />
           <Route path="automacoes" element={<Automacoes />} />
+          <Route path="fluxos" element={<Flows />} />
+          <Route path="redirecionadores" element={<Redirecionadores />} />
+          <Route path="remarketing" element={<Remarketing />} />
+          <Route path="postagens" element={<Postagens />} />
           <Route path="ferramentas" element={<Ferramentas />} />
           <Route path="gateways" element={<Gateways />} />
-          <Route path="fluxos" element={<Flows />} />
           <Route path="trackeamento" element={<Trackeamento />} />
+          <Route path="roletahot" element={<RoletaHot />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="biolink" element={<BioLink />} />
           <Route path="webhooks" element={<Webhooks />} />

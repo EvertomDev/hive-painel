@@ -1,53 +1,42 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useApp } from '../store/AppContext';
-import { useThemeProvider } from '../utils/ThemeContext';
-import { ExpandableTabs } from '../components/ui/ExpandableTabs';
-import NotificationsPanel from '../components/NotificationsPanel';
-import { User, Settings, Moon, Sun, LogOut } from 'lucide-react';
+import { Settings, LogOut, Menu } from 'lucide-react';
 
 function Header({ sidebarOpen, setSidebarOpen }) {
   const { state } = useApp();
-  const { currentTheme, changeCurrentTheme } = useThemeProvider();
-  const [notifOpen, setNotifOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('zeze-auth');
     window.location.href = '/';
   };
 
-  const toggleTheme = () => {
-    changeCurrentTheme(currentTheme === 'dark' ? 'light' : 'dark');
-  };
-
-  const userTabs = [
-    { icon: User, title: 'Perfil', onClick: () => window.location.href = '/configuracoes' },
-    { icon: Settings, title: 'Preferências', onClick: () => window.location.href = '/configuracoes' },
-    { icon: currentTheme === 'dark' ? Sun : Moon, title: currentTheme === 'dark' ? 'Claro' : 'Escuro', onClick: toggleTheme },
-    { icon: LogOut, title: 'Sair', onClick: handleLogout },
-  ];
-
   return (
-    <header className="sticky top-0 z-30 bg-card/90 backdrop-blur-md border-b border-border animate-fade-in">
+    <header className="sticky top-0 z-30 bg-[#050505]/80 backdrop-blur-xl border-b border-white/[0.06]">
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           <button
-            className="text-muted-foreground hover:text-foreground lg:hidden transition-transform hover:scale-105 active:scale-95"
+            className="text-[#a1a1aa] hover:text-white lg:hidden transition-colors"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
+            <Menu size={22} />
           </button>
 
-          <div className="flex items-center gap-3 ml-auto">
-            <NotificationsPanel open={notifOpen} setOpen={setNotifOpen} />
-            <div className="h-6 w-px bg-border hidden sm:block"></div>
-            <ExpandableTabs
-              tabs={userTabs.map(t => ({ icon: t.icon, title: t.title }))}
-              onChange={(index) => {
-                if (index !== null) userTabs[index].onClick();
-              }}
-            />
+          <div className="flex items-center gap-2 ml-auto">
+            <button
+              onClick={() => window.location.href = '/configuracoes'}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#a1a1aa] hover:text-white hover:bg-white/[0.06] transition-all"
+              title="Configurações"
+            >
+              <Settings size={16} />
+            </button>
+            <div className="h-5 w-px bg-white/[0.06]"></div>
+            <button
+              onClick={handleLogout}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#a1a1aa] hover:text-white hover:bg-white/[0.06] transition-all"
+              title="Sair"
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </div>
       </div>

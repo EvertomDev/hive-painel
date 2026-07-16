@@ -1,89 +1,59 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=fallback');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @import 'tailwindcss';
 @import './additional-styles/utility-patterns.css' layer(components);
 
 :root {
-  --card: oklch(1.00 0 0);
-  --ring: oklch(0.55 0.22 264.53);
-  --input: oklch(0.93 0 0);
-  --muted: oklch(0.96 0 0);
-  --accent: oklch(0.95 0 0);
-  --border: oklch(0.90 0 0);
-  --radius: 0.625rem;
-  --chart-1: oklch(0.65 0.18 145);
-  --chart-2: oklch(0.55 0.22 264.53);
-  --chart-3: oklch(0.70 0.12 250);
-  --chart-4: oklch(0.92 0 0);
-  --chart-5: oklch(0.56 0 0);
-  --popover: oklch(1.00 0 0);
-  --primary: oklch(0.20 0 0);
-  --sidebar: oklch(0.99 0 0);
-  --font-mono: Geist Mono, monospace;
-  --font-sans: Geist, sans-serif;
-  --secondary: oklch(0.95 0 0);
-  --background: oklch(0.97 0 0);
-  --font-serif: Georgia, serif;
-  --foreground: oklch(0.10 0 0);
-  --destructive: oklch(0.57 0.22 25);
-  --shadow-blur: 16px;
-  --shadow-color: hsl(0 0% 0%);
-  --sidebar-ring: oklch(0.55 0.22 264.53);
-  --shadow-spread: -4px;
-  --shadow-opacity: 0.08;
-  --sidebar-accent: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.92 0 0);
-  --card-foreground: oklch(0.10 0 0);
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 4px;
-  --sidebar-primary: oklch(0.10 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent-foreground: oklch(0.10 0 0);
-  --popover-foreground: oklch(0.10 0 0);
-  --primary-foreground: oklch(1.00 0 0);
-  --sidebar-foreground: oklch(0.10 0 0);
-  --secondary-foreground: oklch(0.10 0 0);
-  --destructive-foreground: oklch(1.00 0 0);
-  --sidebar-accent-foreground: oklch(0.10 0 0);
-  --sidebar-primary-foreground: oklch(1.00 0 0);
-}
+  --brand-400: #60A5FA;
+  --brand-500: #3B82F6;
+  --brand-600: #2563EB;
+  --brand-700: #1D4ED8;
+  --brand-800: #1E40AF;
+  --border-brand: rgba(59, 130, 246, 0.3);
+  --shadow-brand: 0 8px 32px rgba(59, 130, 246, 0.25);
 
-.dark {
   --card: oklch(0.16 0 0);
   --ring: oklch(0.58 0.21 260.84);
   --input: oklch(0.28 0 0);
   --muted: oklch(0.22 0 0);
   --accent: oklch(0.28 0 0);
   --border: oklch(0.24 0 0);
-  --chart-1: oklch(0.75 0.18 145);
+  --radius: 0.75rem;
+  --chart-1: var(--brand-500);
   --chart-2: oklch(0.58 0.21 260.84);
   --chart-3: oklch(0.65 0.12 250);
   --chart-4: oklch(0.44 0 0);
   --chart-5: oklch(0.92 0 0);
   --popover: oklch(0.16 0 0);
-  --primary: oklch(0.92 0 0);
-  --sidebar: oklch(0.14 0 0);
-  --font-mono: Geist Mono, monospace;
-  --font-sans: Geist, sans-serif;
+  --primary: #3B82F6;
+  --sidebar: #050505;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Inter', sans-serif;
   --secondary: oklch(0.22 0 0);
-  --background: oklch(0.08 0 0);
-  --font-serif: Georgia, serif;
+  --background: #050505;
+  --font-serif: 'Space Grotesk', serif;
   --foreground: oklch(0.95 0 0);
   --destructive: oklch(0.65 0.22 25);
-  --sidebar-ring: oklch(0.58 0.21 260.84);
+  --shadow-blur: 16px;
+  --shadow-color: hsl(0 0% 0%);
+  --sidebar-ring: var(--brand-500);
+  --shadow-spread: -4px;
+  --shadow-opacity: 0.08;
   --sidebar-accent: oklch(0.28 0 0);
-  --sidebar-border: oklch(0.28 0 0);
+  --sidebar-border: rgba(255, 255, 255, 0.06);
   --card-foreground: oklch(0.95 0 0);
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 4px;
   --sidebar-primary: oklch(0.95 0 0);
-  --muted-foreground: oklch(0.70 0 0);
+  --muted-foreground: #a1a1aa;
   --accent-foreground: oklch(0.95 0 0);
   --popover-foreground: oklch(0.95 0 0);
-  --primary-foreground: oklch(0.08 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
+  --primary-foreground: #ffffff;
+  --sidebar-foreground: #a1a1aa;
   --secondary-foreground: oklch(0.95 0 0);
   --destructive-foreground: oklch(0.08 0 0);
   --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-primary-foreground: oklch(0.08 0 0);
+  --sidebar-primary-foreground: #ffffff;
 }
 
 @plugin "@tailwindcss/forms" {
@@ -168,7 +138,9 @@
   --color-yellow-900: #4f3d0e;
   --color-yellow-950: #342809;
 
-  --font-inter: "Inter", "sans-serif";
+  --font-inter: 'Inter', sans-serif;
+  --font-space: 'Space Grotesk', serif;
+  --font-jb: 'JetBrains Mono', monospace;
 
   --text-xs: 0.75rem;
   --text-xs--line-height: 1.5;
@@ -231,14 +203,6 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
   *,
   ::after,
@@ -247,19 +211,154 @@
   ::file-selector-button {
     border-color: var(--border, currentColor);
   }
+
   body {
     background-color: var(--background);
     color: var(--foreground);
+    font-family: 'Inter', sans-serif;
   }
+
+  h1, h2, h3, h4, h5 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+  }
+}
+
+/* ─── Shark Bot Grid Background ─── */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ─── Shark Bot Animations ─── */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes float-slower {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  33% { transform: translateY(-8px) translateX(4px); }
+  66% { transform: translateY(4px) translateX(-4px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+@keyframes orbit-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes beam-drop {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; max-height: 0; }
+  to { opacity: 1; max-height: 500px; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 @layer utilities {
   .animate-fade-in {
-    animation: fadeIn 0.25s ease-out;
+    animation: fade-in 0.25s ease-out;
   }
-}
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out;
+  }
+  .animate-float-slow {
+    animation: float-slow 4s ease-in-out infinite;
+  }
+  .animate-float-slower {
+    animation: float-slower 5s ease-in-out infinite;
+  }
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 3s infinite;
+  }
+  .animate-slide-down {
+    animation: slide-down 0.3s ease-out;
+  }
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+  }
+
+  .glass-card-hover {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+  }
+  .glass-card-hover:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--border-brand);
+    box-shadow: var(--shadow-brand);
+  }
+
+  .brand-glow {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+  }
+
+  .text-gradient-brand {
+    background: linear-gradient(135deg, #60A5FA, #3B82F6, #2563EB);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .grid-bg {
+    background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .noise-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.015;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
 }
