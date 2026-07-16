@@ -3,7 +3,7 @@ import { useApp } from '../store/AppContext';
 import { PageTransition, AnimatedCard, AnimatedButton } from '../components/ui/AnimatedContainer';
 import { Link, Copy, Check, Plus, Trash2, ExternalLink, Smartphone, Image, Palette, GripVertical, Eye, Share2, Edit3 } from 'lucide-react';
 
-const STORAGE_KEY = 'zeze-biolinks';
+const STORAGE_KEY = 'hive-biolinks';
 
 function loadBiolinks() {
   try {
@@ -148,7 +148,7 @@ function BioLink() {
                         )}
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-card-foreground truncate">{bio.name}</h3>
-                          <p className="text-xs text-muted-foreground truncate">zeze.io/{bio.slug}</p>
+                          <p className="text-xs text-muted-foreground truncate">hive.io/{bio.slug}</p>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-xs text-muted-foreground flex items-center gap-1"><Eye size={12} /> {bio.visits || 0}</span>
                             <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${bio.status ? 'bg-chart-1/15 text-chart-1' : 'bg-destructive/15 text-destructive'}`}>{bio.status ? 'Ativo' : 'Inativo'}</span>
@@ -157,7 +157,7 @@ function BioLink() {
                       </div>
                       <div className="flex items-center gap-1 mt-4 pt-3 border-t border-border">
                         <button onClick={() => handleEdit(bio)} className="p-1.5 hover:bg-secondary rounded transition-colors" title="Editar"><Edit3 size={14} className="text-muted-foreground" /></button>
-                        <button onClick={() => copyToClipboard(`https://zeze.io/${bio.slug}`, 'share-' + bio.id)} className="p-1.5 hover:bg-secondary rounded transition-colors" title="Compartilhar">
+                        <button onClick={() => copyToClipboard(`https://hive.io/${bio.slug}`, 'share-' + bio.id)} className="p-1.5 hover:bg-secondary rounded transition-colors" title="Compartilhar">
                           {copiedId === 'share-' + bio.id ? <Check size={14} className="text-chart-1" /> : <Share2 size={14} className="text-muted-foreground" />}
                         </button>
                         <button onClick={() => handleToggleStatus(bio.id)} className="p-1.5 hover:bg-secondary rounded transition-colors" title={bio.status ? 'Desativar' : 'Ativar'}>
@@ -185,7 +185,7 @@ function BioLink() {
                       <div>
                         <label className="block text-sm font-medium text-card-foreground mb-1">Slug (username)</label>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">zeze.io/</span>
+                          <span className="text-sm text-muted-foreground">hive.io/</span>
                           <input value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value.replace(/[^a-zA-Z0-9_-]/g, '') })} className="flex-1 px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="meubio" />
                         </div>
                       </div>
@@ -270,7 +270,7 @@ function BioLink() {
                     </div>
 
                     <div className="px-6 py-3 text-center border-t border-border">
-                      <p className="text-xs text-muted-foreground">zeze.io/{previewBio.slug}</p>
+                      <p className="text-xs text-muted-foreground">hive.io/{previewBio.slug}</p>
                     </div>
                   </div>
                 </AnimatedCard>
@@ -282,7 +282,7 @@ function BioLink() {
               )}
 
               {previewBio && (
-                <AnimatedButton onClick={() => copyToClipboard(`https://zeze.io/${previewBio.slug}`, 'preview-share')} className="w-full mt-4 px-4 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg flex items-center justify-center gap-2">
+                <AnimatedButton onClick={() => copyToClipboard(`https://hive.io/${previewBio.slug}`, 'preview-share')} className="w-full mt-4 px-4 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg flex items-center justify-center gap-2">
                   {copiedId === 'preview-share' ? <><Check size={16} /> Copiado!</> : <><Share2 size={16} /> Compartilhar Página</>}
                 </AnimatedButton>
               )}

@@ -614,7 +614,7 @@ function Bots() {
                     <label className="block text-[11px] text-[#a1a1aa] mb-1.5 font-medium uppercase tracking-wider">Titular</label>
                     <input value={state.pixConfig.merchantName} onChange={e => dispatch({ type: 'SET_PIX_CONFIG', payload: { merchantName: e.target.value } })}
                       className="w-full px-3 py-2.5 text-sm rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder-[#52525b] outline-none focus:ring-1 focus:ring-[var(--brand-500)]"
-                      placeholder="Zeze Content" />
+                      placeholder="Hive Content" />
                   </div>
                 </div>
               </GlassCard>

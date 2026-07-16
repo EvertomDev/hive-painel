@@ -3,7 +3,7 @@ import { useApp } from '../store/AppContext';
 import { PageTransition, AnimatedCard, AnimatedButton } from '../components/ui/AnimatedContainer';
 import { Webhook, Plus, Copy, Check, Trash2, Send, RefreshCw, Loader2, ToggleLeft, ToggleRight } from 'lucide-react';
 
-const STORAGE_KEY = 'zeze-webhooks';
+const STORAGE_KEY = 'hive-webhooks';
 const EVENTS = [
   { key: 'novo_pedido', label: 'Novo pedido' },
   { key: 'pagamento_confirmado', label: 'Pagamento confirmado' },
@@ -25,7 +25,7 @@ function loadWebhooks() {
 
 function saveWebhooks(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 
-const LOGS_KEY = 'zeze-webhooks-logs';
+const LOGS_KEY = 'hive-webhook-logs';
 function loadLogs() {
   try { const raw = localStorage.getItem(LOGS_KEY); return raw ? JSON.parse(raw) : []; } catch { return []; }
 }
@@ -80,7 +80,7 @@ function Webhooks() {
     const testPayload = {
       event: 'test',
       timestamp: new Date().toISOString(),
-      data: { message: 'Teste de webhook do Zeze Painel', webhook: webhook.name },
+      data: { message: 'Teste de webhook do Hive Painel', webhook: webhook.name },
     };
     try {
       const controller = new AbortController();

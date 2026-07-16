@@ -247,7 +247,7 @@ async function startBot(botConfig, options = {}) {
           data.customerContact = msg.text;
           data.step = 'completed';
 
-          const pixCfg = pixConfig || { pixKey: 'zeze@pix.com', merchantName: 'Zeze' };
+          const pixCfg = pixConfig || { pixKey: 'hive@pix.com', merchantName: 'Hive' };
           const paymentId = 'PIX-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 4).toUpperCase();
 
           let payment;
@@ -258,9 +258,9 @@ async function startBot(botConfig, options = {}) {
             });
           } catch (e) {
             payment = {
-              status: 'pending', pixKey: pixCfg.pixKey || 'zeze@pix.com',
+              status: 'pending', pixKey: pixCfg.pixKey || 'hive@pix.com',
               total: data.group.price, paymentId, gateway: 'static',
-              instructions: `💳 PIX\n\nValor: ${formatMoney(data.group.price)}\nChave: ${pixCfg.pixKey || 'zeze@pix.com'}`,
+              instructions: `💳 PIX\n\nValor: ${formatMoney(data.group.price)}\nChave: ${pixCfg.pixKey || 'hive@pix.com'}`,
             };
           }
 

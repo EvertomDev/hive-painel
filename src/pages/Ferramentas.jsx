@@ -93,14 +93,14 @@ function Ferramentas() {
   const handleShorten = () => {
     if (!shortUrl) return;
     const hash = helpers.uid().slice(0, 6);
-    const result = `https://zeze.io/${hash}`;
+    const result = `https://hive.io/${hash}`;
     setShortResult(result);
     addActivity('Link encurtado: ' + result, 'success');
   };
 
   // Nick handler
   const handleGenerateNicks = () => {
-    const prefixes = ['zeze', 'bot', 'vip', 'pro', 'max', 'top', 'plus', 'gold', 'lucky', 'nice', 'real', 'fast', 'easy', 'best', 'super'];
+    const prefixes = ['hive', 'bot', 'vip', 'pro', 'max', 'top', 'plus', 'gold', 'lucky', 'nice', 'real', 'fast', 'easy', 'best', 'super'];
     const suffixes = ['_oficial', '_br', '_vip', '2024', 'shop', '_store', '_digital', 'hub', '_pro', '_max', '_top', 'online', 'club', 'zone', 'live'];
     const generated = [];
     for (let i = 0; i < nickCount; i++) {
@@ -335,7 +335,7 @@ function Ferramentas() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-1">Empresa (opcional)</label>
-                <input value={bioEmpresa} onChange={e => setBioEmpresa(e.target.value)} className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="Zeze Content" />
+                <input value={bioEmpresa} onChange={e => setBioEmpresa(e.target.value)} className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="Hive Content" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-1">Estilo de Emojis</label>

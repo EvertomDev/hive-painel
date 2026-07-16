@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 function Login() {
-  const [email, setEmail] = useState('admin@zeze.com');
+  const [email, setEmail] = useState('admin@hive.com.br');
   const [password, setPassword] = useState('123456');
   const [error, setError] = useState('');
 
@@ -11,7 +11,7 @@ function Login() {
       setError('Preencha email e senha.');
       return;
     }
-    localStorage.setItem('zeze-auth', JSON.stringify({ email, loggedAt: new Date().toISOString() }));
+    localStorage.setItem('hive-auth', JSON.stringify({ email, loggedAt: new Date().toISOString() }));
     window.location.href = '/';
   };
 
@@ -20,7 +20,7 @@ function Login() {
       <div className="w-full max-w-md animate-fade-in">
         <div className="flex items-center justify-center gap-3 mb-8">
           <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-3xl hover:scale-105 transition-transform">Z</div>
-          <span className="text-3xl font-bold text-foreground">Zeze</span>
+          <span className="text-3xl font-bold text-foreground">Hive</span>
         </div>
         <div className="bg-card rounded-2xl shadow-xl border border-border p-8">
           <h1 className="text-xl font-bold text-card-foreground mb-1">Bem-vindo de volta</h1>

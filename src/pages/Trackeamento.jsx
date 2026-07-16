@@ -3,8 +3,8 @@ import { useApp } from '../store/AppContext';
 import { PageTransition, AnimatedCard, AnimatedButton } from '../components/ui/AnimatedContainer';
 import { Hash, Link, Copy, Check, Trash2, Plus, ToggleLeft, ToggleRight, ExternalLink, Info } from 'lucide-react';
 
-const STORAGE_KEY_PIXELS = 'zeze-pixels';
-const STORAGE_KEY_UTM = 'zeze-utm-history';
+const STORAGE_KEY_PIXELS = 'hive-pixels';
+const STORAGE_KEY_UTM = 'hive-utm-history';
 
 function loadPixels() {
   try { const raw = localStorage.getItem(STORAGE_KEY_PIXELS); return raw ? JSON.parse(raw) : []; } catch { return []; }

@@ -4,7 +4,7 @@ import gatewayConfigs from './gatewayRegistry.js';
 
 function generatePixBRCode(pixKey, merchantName, merchantCity, amount, description, txId) {
   const merchantAccountInfo = `0014BR.GOV.BCB.PIX0136${pixKey}`;
-  const merchantNamePadded = (merchantName || 'Zeze').substring(0, 25).padEnd(25, ' ');
+  const merchantNamePadded = (merchantName || 'Hive').substring(0, 25).padEnd(25, ' ');
   const merchantCityPadded = (merchantCity || 'Brasil').substring(0, 15).padEnd(15, ' ');
   const txIdFormatted = (txId || '***').substring(0, 25);
 
@@ -53,8 +53,8 @@ async function createPixPayment(config, paymentData) {
   const { productName, productPrice, customerName, paymentId } = paymentData;
   const { pixKey, merchantName, gateway, gateways } = config;
 
-  const pixKeyToUse = pixKey || 'zeze@pix.com';
-  const merchantNameToUse = merchantName || 'Zeze Content';
+  const pixKeyToUse = pixKey || 'hive@pix.com';
+  const merchantNameToUse = merchantName || 'Hive Content';
 
   if (!gateway || gateway === 'static') {
     return staticPix(pixKeyToUse, merchantNameToUse, productPrice, productName, paymentId);

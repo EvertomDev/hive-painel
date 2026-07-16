@@ -68,7 +68,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
   const isActive = (path) => path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
   const handleLogout = () => {
-    localStorage.removeItem('zeze-auth');
+    localStorage.removeItem('hive-auth');
     window.location.href = '/';
   };
 
@@ -80,7 +80,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
       <div className={`flex flex-col fixed lg:hidden z-50 left-0 top-0 h-full w-64 bg-[#050505] border-r border-white/[0.06] transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center gap-3 px-4 py-5">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--brand-500)] to-[var(--brand-700)] flex items-center justify-center text-white font-bold text-xs">Z</div>
-          <span className="text-base font-bold text-white">Zeze</span>
+          <span className="text-base font-bold text-white">Hive</span>
           <button className="ml-auto text-white/50 hover:text-white" onClick={() => setSidebarOpen(false)}>
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
           </button>
@@ -97,7 +97,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
         <div className="border-t border-white/[0.06] p-3 space-y-2">
           <div className="flex items-center gap-2.5 px-3 py-2">
             <div className="w-7 h-7 rounded-lg bg-white/[0.06] flex items-center justify-center text-xs font-bold text-white/70">Z</div>
-            <span className="text-sm font-medium text-white/70">Zeze Admin</span>
+            <span className="text-sm font-medium text-white/70">Hive Admin</span>
           </div>
           <button onClick={handleLogout} className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors text-sm">
             <LogOut size={16} /> Sair
@@ -108,7 +108,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
       <div className="hidden lg:flex fixed left-0 top-0 h-full w-60 flex-col z-20 bg-[#050505] border-r border-white/[0.06]">
         <div className="flex items-center gap-3 px-4 py-5">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[var(--brand-500)] to-[var(--brand-700)] flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-lg shadow-[var(--brand-500)]/20">Z</div>
-          <span className="text-base font-bold text-white">Zeze</span>
+          <span className="text-base font-bold text-white">Hive</span>
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 pb-4 scrollbar-none">
@@ -124,7 +124,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
         <div className="border-t border-white/[0.06] p-3 space-y-2">
           <div className="flex items-center gap-2.5 px-3 py-2">
             <div className="w-7 h-7 rounded-lg bg-white/[0.06] flex items-center justify-center text-xs font-bold text-white/70">Z</div>
-            <span className="text-sm font-medium text-white/70">Zeze Admin</span>
+            <span className="text-sm font-medium text-white/70">Hive Admin</span>
           </div>
           <button onClick={handleLogout} className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors text-sm">
             <LogOut size={16} /> Sair

@@ -3,7 +3,7 @@ import { useApp } from '../store/AppContext';
 import { PageTransition, AnimatedCard, AnimatedButton } from '../components/ui/AnimatedContainer';
 import { Users, DollarSign, Copy, Check, UserPlus, Edit3, Trash2, Link, Percent, CreditCard, TrendingUp } from 'lucide-react';
 
-const STORAGE_KEY = 'zeze-afiliados';
+const STORAGE_KEY = 'hive-afiliados';
 
 function Afiliado() {
   const { helpers, addActivity, addNotification } = useApp();
@@ -15,7 +15,7 @@ function Afiliado() {
   const [payouts, setPayouts] = useState([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem('zeze-afiliados');
+    const stored = localStorage.getItem('hive-afiliados');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
@@ -26,7 +26,7 @@ function Afiliado() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('zeze-afiliados', JSON.stringify({ afiliados, payouts }));
+    localStorage.setItem('hive-afiliados', JSON.stringify({ afiliados, payouts }));
   }, [afiliados, payouts]);
 
   const copyToClipboard = (text, id) => {
@@ -39,7 +39,7 @@ function Afiliado() {
     e.preventDefault();
     if (!form.name) return;
     const code = form.name.toLowerCase().replace(/\s+/g, '').slice(0, 8) + Math.random().toString(36).substr(2, 4);
-    const link = `https://t.me/zeze_bot?start=${code}`;
+    const link = `https://t.me/hive_bot?start=${code}`;
     if (editingId) {
       setAfiliados(prev => prev.map(a => a.id === editingId ? { ...a, ...form } : a));
       addActivity(`Afiliado ${form.name} atualizado`, 'info');

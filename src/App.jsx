@@ -35,7 +35,7 @@ function AppRoutes() {
     document.querySelector('html').style.scrollBehavior = '';
   }, [location.pathname]);
 
-  const isAuth = !!localStorage.getItem('zeze-auth');
+  const isAuth = !!localStorage.getItem('hive-auth');
 
   if (!isAuth) {
     return (

@@ -15,10 +15,10 @@ const SIDE_TABS = [
 ];
 
 const STORAGE_KEYS = {
-  redirecionadores: 'zeze-redirecionadores',
-  remarketing: 'zeze-remarketing',
-  campanhas: 'zeze-campanhas',
-  postagens: 'zeze-postagens',
+  redirecionadores: 'hive-redirecionadores',
+  remarketing: 'hive-remarketing',
+  campanhas: 'hive-campanhas',
+  postagens: 'hive-postagens',
 };
 
 function loadFromStorage(key) {
@@ -294,7 +294,7 @@ function Automacoes() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-card-foreground mb-1">URL Original (curta)</label>
-                        <input value={redirForm.urlOriginal} onChange={e => setRedirForm({ ...redirForm, urlOriginal: e.target.value })} className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="ex: zeze.io/promo" />
+                        <input value={redirForm.urlOriginal} onChange={e => setRedirForm({ ...redirForm, urlOriginal: e.target.value })} className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="ex: hive.io/promo" />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-card-foreground mb-1">URL de Destino</label>

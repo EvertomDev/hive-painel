@@ -35,8 +35,8 @@ function Settings() {
   });
 
   const [pix, setPix] = useState({
-    chave: state.pixConfig?.pixKey || 'zeze@pix.com',
-    merchantName: state.pixConfig?.merchantName || 'Zeze',
+    chave: state.pixConfig?.pixKey || 'hive@pix.com',
+    merchantName: state.pixConfig?.merchantName || 'Hive',
     gateway: state.pixConfig?.gateway || 'static',
   });
 
@@ -76,12 +76,12 @@ function Settings() {
   };
 
   const handleExport = () => {
-    const data = localStorage.getItem('zeze-dashboard-data');
+    const data = localStorage.getItem('hive-data');
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `zeze-backup-${helpers.today()}.json`;
+    a.download = `hive-backup-${helpers.today()}.json`;
     a.click();
     URL.revokeObjectURL(url);
     addActivity('Backup exportado com sucesso', 'success');
@@ -99,7 +99,7 @@ function Settings() {
       reader.onload = (ev) => {
         try {
           const data = JSON.parse(ev.target.result);
-          localStorage.setItem('zeze-dashboard-data', JSON.stringify(data));
+          localStorage.setItem('hive-data', JSON.stringify(data));
           addActivity('Backup importado com sucesso', 'success');
           addNotification('Dados restaurados', 'A página será recarregada.');
           setTimeout(() => window.location.reload(), 1500);
@@ -129,7 +129,7 @@ function Settings() {
       <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
         <div className="mb-8 animate-fade-in">
           <h1 className="text-2xl md:text-3xl text-card-foreground font-bold">Configurações</h1>
-          <p className="text-sm text-muted-foreground mt-1">Personalize seu painel Zeze</p>
+          <p className="text-sm text-muted-foreground mt-1">Personalize seu painel Hive</p>
         </div>
 
         <div className="flex gap-1 mb-6 bg-muted/50 rounded-lg p-1 overflow-x-auto animate-fade-in">
@@ -206,14 +206,14 @@ function Settings() {
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-1">Chave PIX (CPF/CNPJ/Email/Telefone)</label>
                   <div className="flex gap-2">
-                    <input value={pix.chave} onChange={e => setPix({ ...pix, chave: e.target.value })} className="flex-1 px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="zeze@pix.com" />
+                    <input value={pix.chave} onChange={e => setPix({ ...pix, chave: e.target.value })} className="flex-1 px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="hive@pix.com" />
                     <button onClick={() => { navigator.clipboard.writeText(pix.chave); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
                       className="px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-lg transition-colors">{copied ? <Check size={16} /> : <Copy size={16} />}</button>
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-1">Nome do Titular</label>
-                  <input value={pix.merchantName} onChange={e => setPix({ ...pix, merchantName: e.target.value })} className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="Zeze Content" />
+                  <input value={pix.merchantName} onChange={e => setPix({ ...pix, merchantName: e.target.value })} className="w-full px-4 py-2 rounded-lg bg-background border border-input text-foreground focus:ring-2 focus:ring-ring outline-none" placeholder="Hive Content" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-1">Modo do Gateway</label>

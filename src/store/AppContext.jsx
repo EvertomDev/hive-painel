@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 
-const STORAGE_KEY = 'zeze-dashboard-data';
+const STORAGE_KEY = 'hive-data';
 
 const today = () => new Date().toISOString().split('T')[0];
 const uid = () => Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
 
 const initialState = {
-  user: { name: 'Zeze Admin', email: 'admin@zeze.com', plan: 'PRO' },
+  user: { name: 'Hive Admin', email: 'admin@hive.com.br', plan: 'PRO' },
   config: {
-    webhook: 'https://zeze.com.br/webhook',
+    webhook: 'https://hive.com.br/webhook',
     defaultGateway: 'PushinPay',
     pixDiscount: 0,
   },
@@ -17,7 +17,7 @@ const initialState = {
   sales: [],
   activities: [],
   notifications: [
-    { id: uid(), title: 'Bem-vindo ao Zeze', message: 'Configure seu primeiro bot para começar.', read: false, time: new Date().toISOString() },
+    { id: uid(), title: 'Bem-vindo ao Hive', message: 'Configure seu primeiro bot para começar.', read: false, time: new Date().toISOString() },
   ],
   gateways: [
     { name: 'PagCi Wallet', connected: false, type: 'PIX' },
@@ -61,8 +61,8 @@ const initialState = {
   orders: [],
   remarketing: [],
   pixConfig: {
-    pixKey: 'zeze@pix.com',
-    merchantName: 'Zeze Content',
+    pixKey: 'hive@pix.com',
+    merchantName: 'Hive Content',
     gateway: 'static',
     mercadopagoToken: '',
     mercadopagoEmail: '',

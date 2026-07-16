@@ -6,7 +6,7 @@ function Header({ sidebarOpen, setSidebarOpen }) {
   const { state } = useApp();
 
   const handleLogout = () => {
-    localStorage.removeItem('zeze-auth');
+    localStorage.removeItem('hive-auth');
     window.location.href = '/';
   };
 

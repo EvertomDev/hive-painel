@@ -4,7 +4,7 @@ import { PageTransition, GlassCard } from '../components/ui/AnimatedContainer';
 import { SelectDropdown } from '../components/ui/SelectDropdown';
 import { Send, Clock, CheckCircle, AlertCircle, Trash2, Plus, X, Bold, Italic, Underline, Link, FileImage, Paperclip, CalendarDays, Bot, Users, Eye, Image, Video, Music } from 'lucide-react';
 
-const STORAGE_KEY = 'zeze-postagens';
+const STORAGE_KEY = 'hive-postagens';
 
 function loadPosts() {
   try {

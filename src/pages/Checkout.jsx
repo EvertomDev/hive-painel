@@ -3,11 +3,11 @@ import { useApp } from '../store/AppContext';
 import { PageTransition, AnimatedCard, AnimatedButton } from '../components/ui/AnimatedContainer';
 import { ShoppingCart, CreditCard, Copy, Check, QrCode, Settings, History, Trash2, Palette, Image, Type } from 'lucide-react';
 
-const STORAGE_KEY_CONFIG = 'zeze-checkout-config';
-const STORAGE_KEY_TX = 'zeze-checkout-transactions';
+const STORAGE_KEY_CONFIG = 'hive-checkout-config';
+const STORAGE_KEY_TX = 'hive-checkout-tx';
 
 function loadConfig() {
-  try { const raw = localStorage.getItem(STORAGE_KEY_CONFIG); return raw ? JSON.parse(raw) : { primaryColor: '#7C3AED', logoUrl: '', welcomeText: 'Finalize sua compra', footerText: 'Zeze Content © 2025 - Todos os direitos reservados' }; } catch { return {}; }
+  try { const raw = localStorage.getItem(STORAGE_KEY_CONFIG); return raw ? JSON.parse(raw) : { primaryColor: '#7C3AED', logoUrl: '', welcomeText: 'Finalize sua compra', footerText: 'Hive Content © 2025 - Todos os direitos reservados' }; } catch { return {}; }
 }
 
 function loadTx() {
@@ -41,7 +41,7 @@ function Checkout() {
     addActivity(`Pagamento de R$ ${productPrice} registrado`, 'success');
   };
 
-  const pixCode = `00020101021226880014BR.GOV.BCB.PIX0136${config.pixKey || 'zeze@pix.com'}0208ZezeContent5204000053039865406${parseFloat(productPrice || 0).toFixed(2).replace('.', '')}5802BR5925${config.merchantName || 'Zeze Content'}6008BRASILIA62070503***6304`;
+  const pixCode = `00020101021226880014BR.GOV.BCB.PIX0136${config.pixKey || 'hive@pix.com'}0208HiveContent5204000053039865406${parseFloat(productPrice || 0).toFixed(2).replace('.', '')}5802BR5925${config.merchantName || 'Hive Content'}6008BRASILIA62070503***6304`;
 
   const handleDeleteTx = (id) => {
     setTransactions(transactions.filter(t => t.id !== id));
