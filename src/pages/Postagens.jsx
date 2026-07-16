@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { PageTransition, GlassCard } from '../components/ui/AnimatedContainer';
+import { SelectDropdown } from '../components/ui/SelectDropdown';
 import { Send, Clock, CheckCircle, AlertCircle, Trash2, Plus, X, Bold, Italic, Underline, Link, FileImage, Paperclip, CalendarDays, Bot, Users, Eye, Image, Video, Music } from 'lucide-react';
 
 const STORAGE_KEY = 'zeze-postagens';
@@ -137,38 +138,38 @@ function Postagens() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-[11px] text-[#a1a1aa] mb-1.5 font-medium uppercase tracking-wider">Bot</label>
-                      <div className="relative">
-                        <Bot size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#52525b]" />
-                        <select value={selectedBot} onChange={e => { setSelectedBot(e.target.value); setSelectedGroup(''); setSelectedCdn(''); }}
-                          className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:ring-1 focus:ring-[var(--brand-500)] outline-none appearance-none">
-                          <option value="">Selecione um bot</option>
-                          {bots.map(b => <option key={b.id || b.name} value={b.name || b.id}>{b.name}</option>)}
-                        </select>
-                      </div>
+                      <SelectDropdown
+                        icon={Bot}
+                        placeholder="Selecione um bot"
+                        value={selectedBot}
+                        onChange={(v) => { setSelectedBot(v); setSelectedGroup(''); setSelectedCdn(''); }}
+                        searchable
+                        options={bots.map(b => ({ value: b.name || b.id, label: b.name || 'Bot sem nome', description: b.status === 'active' ? 'Ativo' : 'Inativo', badge: b.status === 'active' ? 'online' : undefined }))}
+                      />
                     </div>
                     <div>
                       <label className="block text-[11px] text-[#a1a1aa] mb-1.5 font-medium uppercase tracking-wider">Grupo / Canal (Destino)</label>
-                      <div className="relative">
-                        <Users size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#52525b]" />
-                        <select value={selectedGroup} onChange={e => setSelectedGroup(e.target.value)}
-                          disabled={!selectedBot}
-                          className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:ring-1 focus:ring-[var(--brand-500)] outline-none appearance-none disabled:opacity-40">
-                          <option value="">{selectedBot ? 'Selecione um grupo' : 'Selecione um bot primeiro'}</option>
-                          {filteredGroups.map(g => <option key={g.id} value={g.id}>{g.name} ({g.members || 0} membros)</option>)}
-                        </select>
-                      </div>
+                      <SelectDropdown
+                        icon={Users}
+                        placeholder={selectedBot ? 'Selecione um grupo' : 'Selecione um bot primeiro'}
+                        value={selectedGroup}
+                        onChange={setSelectedGroup}
+                        disabled={!selectedBot}
+                        searchable
+                        options={filteredGroups.map(g => ({ value: g.id, label: g.name, description: `${g.members || 0} membros`, badge: g.price > 0 ? `R$ ${g.price}` : 'Grátis' }))}
+                      />
                     </div>
                     <div>
                       <label className="block text-[11px] text-[#a1a1aa] mb-1.5 font-medium uppercase tracking-wider">Canal CDN (Armazenamento)</label>
-                      <div className="relative">
-                        <Image size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#52525b]" />
-                        <select value={selectedCdn} onChange={e => setSelectedCdn(e.target.value)}
-                          disabled={!selectedBot}
-                          className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl bg-white/[0.04] border border-white/[0.08] text-white focus:ring-1 focus:ring-[var(--brand-500)] outline-none appearance-none disabled:opacity-40">
-                          <option value="">{selectedBot ? 'Selecione um canal' : 'Selecione um bot primeiro'}</option>
-                          {filteredGroups.filter(g => g.category === 'vip' || g.category === 'combo').map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                        </select>
-                      </div>
+                      <SelectDropdown
+                        icon={Image}
+                        placeholder={selectedBot ? 'Selecione um canal' : 'Selecione um bot primeiro'}
+                        value={selectedCdn}
+                        onChange={setSelectedCdn}
+                        disabled={!selectedBot}
+                        searchable
+                        options={filteredGroups.filter(g => g.category === 'vip' || g.category === 'combo').map(g => ({ value: g.id, label: g.name, description: `${g.members || 0} membros` }))}
+                      />
                     </div>
                   </div>
 
