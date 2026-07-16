@@ -247,12 +247,14 @@ app.post('/api/gateway/webhook/:gateway', async (req, res) => {
     const payload = req.body;
 
     const chargeId = payload.id || payload.charge_id || payload.payment_id || payload.txid ||
-      payload.data?.id || payload.data?.object?.id;
-    const status = (payload.status || payload.data?.status || payload.data?.object?.status || '').toLowerCase();
+      payload.data?.id || payload.data?.object?.id || payload.transaction?.id;
+    const status = (payload.status || payload.data?.status || payload.data?.object?.status || payload.transaction?.status || '').toLowerCase();
+    const event = (payload.event || '').toLowerCase();
 
     if (chargeId && (
       status === 'paid' || status === 'completed' || status === 'approved' ||
-      status === 'concluida' || status === 'succeeded' || status === 'confirmed'
+      status === 'concluida' || status === 'succeeded' || status === 'confirmed' ||
+      event === 'transaction_paid' || event === 'transaction_completed'
     )) {
       _findAndConfirmOrder(chargeId);
     }

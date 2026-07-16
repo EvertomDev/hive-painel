@@ -151,9 +151,15 @@ async function checkCharge(gatewayConfig, credentials, chargeId) {
       ...(await getAuthHeader(gatewayConfig, credentials)),
     };
 
-    let checkPath = gatewayConfig.endpoints.checkCharge || '/transaction/{id}';
-    let url = `${gatewayConfig.baseUrl}${checkPath}`.replace('{id}', chargeId);
+    let url;
     const method = gatewayConfig.checkMethod || 'GET';
+
+    if (gatewayConfig.checkPathTemplate) {
+      url = `${gatewayConfig.baseUrl}${gatewayConfig.checkPathTemplate}`.replace('{transactionId}', chargeId);
+    } else {
+      let checkPath = gatewayConfig.endpoints.checkCharge || '/transaction/{id}';
+      url = `${gatewayConfig.baseUrl}${checkPath}`.replace('{id}', chargeId);
+    }
 
     let body;
     if (method === 'POST' && gatewayConfig.checkBodyTemplate) {
@@ -175,6 +181,36 @@ async function checkCharge(gatewayConfig, credentials, chargeId) {
   }
 }
 
+// ─── Check balance ────────────────────────────────────────
+async function checkBalance(gatewayConfig, credentials) {
+  try {
+    if (!gatewayConfig.balanceEndpoint) {
+      return { ok: false, error: 'Balance não suportado para este gateway' };
+    }
+
+    const headers = {
+      'Accept': 'application/json',
+      ...(await getAuthHeader(gatewayConfig, credentials)),
+    };
+
+    const url = `${gatewayConfig.baseUrl}${gatewayConfig.balanceEndpoint}`;
+    const method = gatewayConfig.balanceMethod || 'GET';
+
+    const res = await fetch(url, { method, headers });
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        return { ok: false, error: 'Credenciais inválidas ou sem permissão de saldo' };
+      }
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    return { ok: true, balance: data.available ?? data.balance ?? data.total ?? null, raw: data };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
 // ─── Helpers ────────────────────────────────────────────────
 function pathGet(obj, path) {
   return path.split('.').reduce((o, k) => o?.[k], obj);
@@ -189,4 +225,4 @@ function normalizeStatus(status) {
   return s;
 }
 
-export { createPixCharge, checkCharge, normalizeStatus, getAuthHeader, pathGet };
+export { createPixCharge, checkCharge, checkBalance, normalizeStatus, getAuthHeader, pathGet };

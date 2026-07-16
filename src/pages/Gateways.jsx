@@ -110,7 +110,8 @@ function getGatewayFieldKeys(name) {
   const n = name.toLowerCase();
   if (['stripe'].some(k => n.includes(k))) return ['secretKey', 'email'];
   if (['pushinpay', 'axenpay', 'paradise', 'mercadopago'].some(k => n.includes(k))) return ['token', 'email'];
-  if (['syncpay', 'nxgate', 'sigilopay', 'pagciwallet', 'duck', 'wiinpay', 'veopag', 'vizzionpay', 'amplopay'].some(k => n.includes(k))) return ['clientId', 'clientSecret'];
+  if (['sigilopay'].some(k => n.includes(k))) return ['publicKey', 'secretKey'];
+  if (['syncpay', 'nxgate', 'pagciwallet', 'duck', 'wiinpay', 'veopag', 'vizzionpay', 'amplopay'].some(k => n.includes(k))) return ['clientId', 'clientSecret'];
   if (['gerencianet', 'efi'].some(k => n.includes(k))) return ['clientId', 'clientSecret', 'cpf', 'pixKey'];
   if (['freepay', 'bestfy', 'oasyfy', 'omegapay', 'hoopay'].some(k => n.includes(k))) return ['apiKey', 'secretKey'];
   if (['tribopay', 'atomopay', 'ironpay', 'pixgateip'].some(k => n.includes(k))) return ['apiKey'];
@@ -140,6 +141,8 @@ function GatewayCard({ gateway, index, expanded, setExpanded, editFields, handle
     handleSaveConfig(gateway.name);
     await new Promise(r => setTimeout(r, 400));
     handleToggle(gateway);
+    await new Promise(r => setTimeout(r, 300));
+    await handleConsultBalance(gateway.name);
     setConnecting(false);
   }
 

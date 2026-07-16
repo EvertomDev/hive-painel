@@ -99,7 +99,11 @@ const gatewayConfigs = {
     amountUnit: 'real',
     endpoints: { createCharge: '/gateway/pix/receive', checkCharge: '/gateway/transactions' },
     createMethod: 'POST',
-    checkMethod: 'POST',
+    checkMethod: 'GET',
+    checkPathTemplate: '/gateway/transactions?id={transactionId}',
+    balanceEndpoint: '/gateway/producer/balance',
+    balanceMethod: 'GET',
+    balanceMapping: 'available',
     bodyTemplate: ({ amount, identifier, client, callbackUrl }) => ({
       identifier: identifier || ('zeze_' + Date.now()),
       amount: amount,
@@ -110,9 +114,6 @@ const gatewayConfigs = {
         document: (client?.document) || '00000000000',
       },
       ...(callbackUrl ? { callbackUrl } : {}),
-    }),
-    checkBodyTemplate: ({ transactionId }) => ({
-      transactionId: transactionId,
     }),
     responseMapping: {
       paymentId: 'transactionId',
