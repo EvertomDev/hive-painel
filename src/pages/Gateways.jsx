@@ -227,8 +227,6 @@ function Gateways() {
       if (data.ok && data.balance !== undefined) {
         dispatch({ type: 'UPDATE_GATEWAY_BALANCE', payload: { name, balance: data.balance } });
         addActivity(`Saldo ${name}: R$ ${data.balance.toFixed(2)}`, 'info');
-      } else {
-        addActivity(`Saldo ${name}: indisponível`, 'warning');
       }
     } catch {
       addActivity(`Erro ao consultar saldo: ${name}`, 'warning');

@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../store/AppContext';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { PageTransition, AnimatedCard, PulseDot } from '../components/ui/AnimatedContainer';
-import { PlatformIcon, getPlatformMeta } from '../components/accounts/PlatformIcon';
-import { Bot, DollarSign, Users, Clock, Monitor, MessageCircle, Activity, Wifi, WifiOff, ShoppingCart } from 'lucide-react';
+import { Bot, DollarSign, Users, Clock, Monitor, Activity, ShoppingCart } from 'lucide-react';
 
 function Dashboard() {
   const { state, helpers } = useApp();
@@ -14,9 +13,6 @@ function Dashboard() {
   const totalRevenue = approvedSales.reduce((a, s) => a + Number(s.value), 0) + state.orders.filter(o => o.status === 'delivered' || o.status === 'approved').reduce((a, o) => a + Number(o.value), 0);
   const pendingOrders = state.orders.filter(o => o.status === 'pending').length;
   const totalMembers = state.members.length;
-  const accountsOnline = state.accounts.filter(a => a.status === 'online').length;
-  const accountsOffline = state.accounts.filter(a => a.status !== 'online').length;
-  const msgAccounts = state.accounts.filter(a => ['telegram', 'whatsapp'].includes(a.platform)).length;
 
   const recentSales = [...state.sales].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
   const recentOrders = [...state.orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
@@ -54,15 +50,6 @@ function Dashboard() {
     }]
   };
 
-  const accountPlatformData = {
-    labels: [...new Set(state.accounts.map(a => getPlatformMeta(a.platform).label))],
-    datasets: [{
-      data: [...new Set(state.accounts.map(a => a.platform))].map(p => state.accounts.filter(a => a.platform === p).length),
-      backgroundColor: ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', '#8b5cf6', '#ec4899', '#f59e0b'],
-      borderWidth: 0,
-    }]
-  };
-
   const statCards = [
     { label: 'Bots Ativos', value: activeBots, icon: Bot, color: 'text-chart-2', link: '/bots' },
     { label: 'Faturamento', value: helpers.formatMoney(totalRevenue), icon: DollarSign, color: 'text-chart-1', link: '/bots' },
@@ -79,7 +66,7 @@ function Dashboard() {
             <p className="text-sm text-muted-foreground mt-1">Visão geral do seu negócio</p>
           </div>
           <div className="flex gap-2">
-            <Link to="/contas" className="inline-block px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold rounded-lg transition-all hover:scale-[1.02]">Nova Conta</Link>
+            <Link to="/bots" className="inline-block px-4 py-2 bg-[var(--brand-500)] hover:bg-[var(--brand-600)] text-white text-sm font-semibold rounded-lg transition-all hover:scale-[1.02]">Gerenciar Bots</Link>
           </div>
         </div>
 
@@ -111,49 +98,10 @@ function Dashboard() {
                 <Doughnut data={statusData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
               </div>
             </AnimatedCard>
-            <AnimatedCard className="bg-card rounded-xl border border-border p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-card-foreground mb-4">Plataformas</h2>
-              <div className="h-40 flex items-center justify-center">
-                {state.accounts.length > 0 ? (
-                  <Doughnut data={accountPlatformData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
-                ) : (
-                  <p className="text-sm text-muted-foreground">Nenhuma conta cadastrada</p>
-                )}
-              </div>
-            </AnimatedCard>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AnimatedCard className="bg-card rounded-xl border border-border p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-card-foreground">Contas</h2>
-              <Link to="/contas" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Gerenciar</Link>
-            </div>
-            <div className="space-y-3">
-              {state.accounts.length === 0 ? (
-                <p className="text-muted-foreground text-sm">Nenhuma conta integrada</p>
-              ) : state.accounts.slice(0, 5).map(acc => (
-                <div key={acc.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors">
-                  <div className="relative">
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden border border-border">
-                      {acc.photo ? <img src={acc.photo} alt="" className="w-full h-full object-cover" /> : <PlatformIcon platform={acc.platform} size={16} />}
-                    </div>
-                    <span className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-card ${acc.status === 'online' ? 'bg-chart-1' : 'bg-muted-foreground'}`}></span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-card-foreground truncate">{acc.name}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      {getPlatformMeta(acc.platform).label}
-                      {acc.status === 'online' ? <Wifi size={10} className="text-chart-1" /> : <WifiOff size={10} />}
-                    </p>
-                  </div>
-                  <Link to="/contas" className="px-2 py-1 text-[10px] font-medium bg-muted text-muted-foreground rounded-md hover:bg-muted/80 transition-colors">Abrir</Link>
-                </div>
-              ))}
-            </div>
-          </AnimatedCard>
-
           <AnimatedCard className="bg-card rounded-xl border border-border p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="text-lg font-bold text-card-foreground">Atividade Recente</h2>

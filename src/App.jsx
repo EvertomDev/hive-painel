@@ -22,7 +22,6 @@ import BioLink from './pages/BioLink';
 import Webhooks from './pages/Webhooks';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
-import Accounts from './pages/Accounts';
 import Redirecionadores from './pages/Redirecionadores';
 import Remarketing from './pages/Remarketing';
 import Postagens from './pages/Postagens';
@@ -67,7 +66,6 @@ function AppRoutes() {
           <Route path="checkout" element={<Checkout />} />
           <Route path="biolink" element={<BioLink />} />
           <Route path="webhooks" element={<Webhooks />} />
-          <Route path="contas" element={<Accounts />} />
           <Route path="configuracoes" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
