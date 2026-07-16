@@ -44,6 +44,7 @@ const initialState = {
     { id: uid(), groupId: '', name: 'João', contact: '@joao123', chatId: '123456', purchasedAt: today(), value: 29.90, status: 'active' },
   ],
   orders: [],
+  remarketing: [],
   pixConfig: {
     pixKey: 'zeze@pix.com',
     merchantName: 'Zeze Content',
@@ -169,6 +170,12 @@ function reducer(state, action) {
       return { ...state, accounts: state.accounts.map(a => a.id === action.payload ? { ...a, favorite: !a.favorite } : a) };
     case 'SET_ACCOUNT_CATEGORIES':
       return { ...state, accountCategories: action.payload };
+    case 'ADD_REMARKETING':
+      return { ...state, remarketing: [...(state.remarketing || []), action.payload] };
+    case 'UPDATE_REMARKETING':
+      return { ...state, remarketing: (state.remarketing || []).map(c => c.id === action.payload.id ? { ...c, ...action.payload.data } : c) };
+    case 'DELETE_REMARKETING':
+      return { ...state, remarketing: (state.remarketing || []).filter(c => c.id !== action.payload) };
     case 'RESET_DATA':
       localStorage.removeItem(STORAGE_KEY);
       return { ...initialState, activities: [{ id: uid(), text: 'Dados resetados', type: 'warning', time: new Date().toISOString() }] };
