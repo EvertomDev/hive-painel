@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { useApp } from '../store/AppContext';
 import { PageTransition, AnimatedCard } from '../components/ui/AnimatedContainer';
 import { PlatformIcon, getPlatformMeta } from '../components/accounts/PlatformIcon';
@@ -150,7 +150,7 @@ function Accounts() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h1 className="text-lg font-bold text-card-foreground">Contas Integradas</h1>
-                <p className="text-xs text-muted-foreground">{state.accounts.length} conta(s) • {state.accounts.filter(a => a.status === 'online').length} online</p>
+                <p className="text-xs text-muted-foreground">{state.accounts.length} conta(s) ÔÇó {state.accounts.filter(a => a.status === 'online').length} online</p>
               </div>
               <div className="flex gap-1">
                 <button onClick={() => setBulkMode(!bulkMode)} className={`p-2 rounded-lg transition-colors ${bulkMode ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`} title="Modo lote">
@@ -348,7 +348,7 @@ function Accounts() {
       <ConfirmDialog
         open={confirmDelete !== null}
         title={confirmDelete?.bulk ? `Excluir ${selectedIds.size} contas?` : `Excluir ${confirmDelete?.name}?`}
-        message={confirmDelete?.bulk ? `Tem certeza que deseja excluir ${selectedIds.size} contas? Esta ação não pode ser desfeita.` : `Tem certeza que deseja excluir a conta ${confirmDelete?.name}? Esta ação não pode ser desfeita.`}
+        message={confirmDelete?.bulk ? `Tem certeza que deseja excluir ${selectedIds.size} contas? Esta a├º├úo n├úo pode ser desfeita.` : `Tem certeza que deseja excluir a conta ${confirmDelete?.name}? Esta a├º├úo n├úo pode ser desfeita.`}
         variant="danger"
         confirmLabel={confirmDelete?.bulk ? `Excluir ${selectedIds.size}` : 'Excluir'}
         onConfirm={() => confirmDelete?.bulk ? handleBulkDelete() : handleDelete(confirmDelete)}
