@@ -139,16 +139,6 @@ function GatewayCard({ gateway, index, configs, expanded, setExpanded, editField
           </div>
         </div>
 
-        <div className="mb-4">
-          <div className="flex items-center justify-between bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2">
-            <code className="text-[11px] font-mono text-[#a1a1aa] truncate mr-2">{webhookUrl}</code>
-            <button onClick={copyWebhook}
-              className="p-1 rounded-md text-[#52525b] hover:text-white hover:bg-white/[0.06] transition-colors shrink-0">
-              {copied ? <CopyCheck size={12} className="text-emerald-400" /> : <Copy size={12} />}
-            </button>
-          </div>
-        </div>
-
         <button onClick={() => setExpanded(isOpen ? null : gateway.name)}
           className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/[0.08]">
           {isOpen ? 'Fechar' : 'Configurar Credenciais'}
@@ -158,6 +148,13 @@ function GatewayCard({ gateway, index, configs, expanded, setExpanded, editField
           <div className="mt-4 space-y-3 animate-fade-in">
             <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
               <p className="text-[10px] text-[#a1a1aa] uppercase tracking-wider font-semibold mb-2">Credenciais</p>
+              <div className="flex items-center justify-between bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 mb-3">
+                <code className="text-[10px] font-mono text-[#a1a1aa] truncate mr-2">{webhookUrl}</code>
+                <button onClick={copyWebhook}
+                  className="p-1 rounded-md text-[#52525b] hover:text-white hover:bg-white/[0.06] transition-colors shrink-0">
+                  {copied ? <CopyCheck size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                </button>
+              </div>
               <div className="space-y-2.5">
                 {fields.map(field => (
                   <div key={field}>
@@ -367,29 +364,6 @@ function Gateways() {
           </div>
         )}
 
-        <div className="mt-10 rounded-2xl border border-white/[0.08] bg-gradient-to-r from-white/[0.03] to-transparent p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-[var(--brand-500)]/10 flex items-center justify-center shrink-0">
-              <Globe size={20} className="text-[var(--brand-500)]" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-base font-bold text-white mb-3">24 Gateways Suportados</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-4">
-                {GATEWAY_SUGGESTIONS.map(name => (
-                  <div key={name} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-                    <span className="w-6 h-6 rounded-md flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{ backgroundColor: GATEWAY_BRANDS[name] || '#3B82F6' }}>
-                      {GATEWAY_LOGO_STYLES[name] || name.substring(0, 2).toUpperCase()}
-                    </span>
-                    <span className="text-[11px] text-white/60 truncate">{name}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-[#a1a1aa] flex items-center gap-1">
-                <ExternalLink size={11} /> Configure o webhook como <code className="bg-white/[0.06] px-2 py-0.5 rounded text-[10px] font-mono text-[var(--brand-500)]">/api/gateway/webhook/nomedogateway</code>
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </PageTransition>
   );
