@@ -6,6 +6,18 @@ import MobileNav from './MobileNav';
 
 function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('zeze-sidebar-expanded') === 'true';
+    }
+    return false;
+  });
+
+  const toggleSidebar = () => {
+    const next = !sidebarExpanded;
+    setSidebarExpanded(next);
+    localStorage.setItem('zeze-sidebar-expanded', next);
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] relative overflow-hidden">
@@ -15,9 +27,9 @@ function Layout() {
         <div className="absolute inset-0 noise-bg opacity-[0.015]"></div>
       </div>
 
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} expanded={sidebarExpanded} onToggle={toggleSidebar} />
 
-      <div className="flex flex-col lg:ml-[70px]">
+      <div className={`flex flex-col transition-all duration-300 ease-in-out ${sidebarExpanded ? 'lg:ml-[220px]' : 'lg:ml-[70px]'}`}>
         <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         <main className="grow pb-20 lg:pb-0">
           <Outlet />

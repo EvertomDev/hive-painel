@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useApp } from '../store/AppContext';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const menuGroups = [
   {
@@ -37,7 +38,7 @@ const menuGroups = [
   },
 ];
 
-function Sidebar({ sidebarOpen, setSidebarOpen }) {
+function Sidebar({ sidebarOpen, setSidebarOpen, expanded, onToggle }) {
   const { state } = useApp();
   const location = useLocation();
 
@@ -50,24 +51,22 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
   }), [state]);
 
   const NavIcon = ({ d }) => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       {d.split(' ').map((path, i) => <path key={i} d={path} />)}
     </svg>
   );
 
   return (
     <>
-      {/* Mobile overlay */}
       <div
         className={`fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm transition-opacity duration-300 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* Mobile sidebar (full) */}
       <div className={`flex flex-col fixed lg:hidden z-50 left-0 top-0 h-full w-64 bg-[#050505] border-r border-white/[0.06] transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between px-4 py-5">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--brand-500)] to-[var(--brand-700)] flex items-center justify-center text-white font-bold text-sm">Z</div>
+            <div className={`rounded-xl bg-gradient-to-br from-[var(--brand-500)] to-[var(--brand-700)] flex items-center justify-center text-white font-bold shrink-0 ${expanded ? 'w-9 h-9 text-sm' : 'w-9 h-9 text-sm'}`}>Z</div>
             <span className="text-base font-bold text-white">Zeze</span>
           </div>
           <button className="text-[#a1a1aa] hover:text-white" onClick={() => setSidebarOpen(false)}>
@@ -87,7 +86,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                       className={`flex items-center gap-3 px-3 py-[7px] rounded-lg text-sm font-medium transition-all duration-150 ${
                         isActive ? 'bg-white/[0.06] text-white' : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.03]'
                       }`}>
-                      <span className={`shrink-0 transition-colors duration-150 ${isActive ? 'text-[var(--brand-500)]' : 'group-hover:text-[var(--brand-500)]'}`}>
+                      <span className={`shrink-0 transition-colors duration-150 ${isActive ? 'text-[var(--brand-500)]' : ''}`}>
                         <NavIcon d={item.icon} />
                       </span>
                       <span className="flex-1 truncate">{item.label}</span>
@@ -105,23 +104,23 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
         </div>
       </div>
 
-      {/* Desktop sidebar (icon-only, 70px) */}
-      <div className="hidden lg:flex fixed left-0 top-0 h-screen border-r flex-col w-[70px] z-20 bg-[#050505] border-white/[0.06]">
-        {/* Beam animation */}
+      <div className={`hidden lg:flex fixed left-0 top-0 h-screen border-r flex-col z-20 bg-[#050505] border-white/[0.06] transition-all duration-300 ease-in-out ${expanded ? 'w-[220px]' : 'w-[70px]'}`}>
         <div className="absolute top-0 bottom-0 right-0 w-px bg-white/[0.04] overflow-hidden z-10">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--brand-500)] to-transparent animate-[beam-drop_5s_cubic-bezier(0.4,0,0.2,1)_infinite_2s]"></div>
         </div>
 
-        {/* Logo */}
-        <div className="pt-5 pb-4 flex items-center justify-center px-2">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--brand-500)] to-[var(--brand-700)] flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-[var(--brand-500)]/20">Z</div>
+        <div className={`pt-5 pb-4 flex items-center px-3 ${expanded ? 'justify-start gap-3' : 'justify-center'}`}>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--brand-500)] to-[var(--brand-700)] flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-[var(--brand-500)]/20 shrink-0">Z</div>
+          <span className={`text-base font-bold text-white transition-opacity duration-200 ${expanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>Zeze</span>
         </div>
 
-        {/* Nav items */}
         <div className="relative flex-1 min-h-0">
           <nav className="h-full overflow-y-auto pb-6 scrollbar-none px-2">
             {menuGroups.map((group) => (
               <div key={group.label} className="mb-1">
+                <div className={`px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-[#52525b] transition-all duration-200 ${expanded ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden py-0'}`}>
+                  {group.label}
+                </div>
                 <ul className="space-y-[1px]">
                   {group.items.map((item) => {
                     const isActive = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path);
@@ -129,14 +128,24 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     return (
                       <li key={item.path}>
                         <NavLink end={item.path === '/'} to={item.path}
-                          className={`w-full flex items-center justify-center gap-3 px-3 py-[7px] rounded-lg transition-all duration-150 group relative ${
+                          className={`flex items-center rounded-lg transition-all duration-150 group relative ${
+                            expanded ? 'gap-3 px-3 py-[7px]' : 'justify-center px-2 py-[7px]'
+                          } ${
                             isActive ? 'text-white bg-white/[0.06]' : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.03]'
                           }`}
-                          title={item.label}>
+                          title={!expanded ? item.label : undefined}>
                           <span className={`transition-colors duration-150 flex-shrink-0 relative ${isActive ? 'text-[var(--brand-500)]' : 'group-hover:text-[var(--brand-500)]'}`}>
                             <NavIcon d={item.icon} />
                           </span>
-                          {badge !== null && badge > 0 && (
+                          <span className={`text-sm font-medium transition-all duration-200 ${
+                            expanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
+                          }`}>{item.label}</span>
+                          {badge !== null && badge > 0 && expanded && (
+                            <span className={`ml-auto px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
+                              isActive ? 'bg-[var(--brand-500)]/20 text-[var(--brand-500)]' : 'bg-white/[0.06] text-[#a1a1aa]'
+                            }`}>{badge > 99 ? '99+' : badge}</span>
+                          )}
+                          {badge !== null && badge > 0 && !expanded && (
                             <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--brand-500)]"></span>
                           )}
                         </NavLink>
@@ -148,6 +157,13 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
             ))}
           </nav>
         </div>
+
+        <button
+          onClick={onToggle}
+          className="flex items-center justify-center w-full py-3 border-t border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa] hover:bg-white/[0.02] transition-all"
+        >
+          {expanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+        </button>
       </div>
     </>
   );
