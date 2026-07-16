@@ -134,6 +134,8 @@ function reducer(state, action) {
       return { ...state, members: state.members.filter(m => m.id !== action.payload) };
     case 'ADD_GATEWAY':
       return { ...state, gateways: [...state.gateways, action.payload] };
+    case 'UPDATE_GATEWAY_BALANCE':
+      return { ...state, gateways: state.gateways.map(g => g.name === action.payload.name ? { ...g, balance: action.payload.balance, balanceUpdatedAt: Date.now() } : g) };
     case 'REMOVE_GATEWAY':
       return { ...state, gateways: state.gateways.filter(g => g.name !== action.payload) };
     case 'SET_PIX_CONFIG':

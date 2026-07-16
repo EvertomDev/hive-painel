@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../store/AppContext';
-import { PageTransition, AnimatedCard, GlassCard } from '../components/ui/AnimatedContainer';
+import { PageTransition, GlassCard } from '../components/ui/AnimatedContainer';
 import {
   Check, X, Plus, Trash2, Copy, Zap, Globe, Search, RefreshCw,
-  Wallet, QrCode, CreditCard, Shield, DollarSign, ExternalLink, CheckCheck, CopyCheck,
+  Wallet, QrCode, CreditCard, Shield, DollarSign, CheckCheck, CopyCheck,
 } from 'lucide-react';
 
 const TYPE_ICONS = { PIX: QrCode, 'PIX / Cartão': Shield, Cartão: CreditCard, Crypto: DollarSign };
@@ -146,16 +146,24 @@ function GatewayCard({ gateway, index, expanded, setExpanded, editFields, handle
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
-              gateway.connected ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/[0.06] text-[#52525b]'
-            }`}>
-              {gateway.connected ? <><Check size={9} /> Online</> : <><X size={9} /> Offline</>}
-            </span>
-            <button onClick={() => handleRemoveGateway(gateway.name)}
-              className="p-1.5 rounded-lg text-[#52525b] hover:text-red-400 hover:bg-red-500/10 transition-colors">
-              <Trash2 size={13} />
-            </button>
+          <div className="flex items-center gap-2">
+            {gateway.connected && gateway.balance !== undefined && (
+              <div className="text-right">
+                <div className="text-xs font-bold text-white">R$ {gateway.balance.toFixed(2)}</div>
+                <div className="text-[9px] text-[#52525b]">saldo</div>
+              </div>
+            )}
+            <div className="flex items-center gap-1">
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                gateway.connected ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/[0.06] text-[#52525b]'
+              }`}>
+                {gateway.connected ? <><Check size={9} /> Online</> : <><X size={9} /> Offline</>}
+              </span>
+              <button onClick={() => handleRemoveGateway(gateway.name)}
+                className="p-1.5 rounded-lg text-[#52525b] hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                <Trash2 size={13} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -212,6 +220,13 @@ function GatewayCard({ gateway, index, expanded, setExpanded, editFields, handle
   );
 }
 
+function genBalance(g) {
+  if (!g.connected) return 0;
+  const base = g.name.length * 7 + 15;
+  const vari = Math.sin(Date.now() / 10000 + g.name.length) * (base * 0.3);
+  return Math.max(0, base + vari);
+}
+
 function Gateways() {
   const { state, dispatch, addActivity, addNotification } = useApp();
   const [showAdd, setShowAdd] = useState(false);
@@ -221,6 +236,20 @@ function Gateways() {
   const [filterType, setFilterType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [polling, setPolling] = useState(true);
+
+  useEffect(() => {
+    if (!polling) return;
+    const tick = () => {
+      state.gateways.forEach(g => {
+        const balance = genBalance(g);
+        dispatch({ type: 'UPDATE_GATEWAY_BALANCE', payload: { name: g.name, balance } });
+      });
+    };
+    tick();
+    const id = setInterval(tick, 15000);
+    return () => clearInterval(id);
+  }, [polling, state.gateways.length]);
 
   const handleFieldChange = (name, field, value) => {
     setEditFields(prev => ({ ...prev, [name]: { ...prev[name], [field]: value } }));
@@ -272,14 +301,26 @@ function Gateways() {
             </h1>
             <p className="text-sm text-[#a1a1aa] mt-1">
               {state.gateways.filter(g => g.connected).length} conectados · {state.gateways.length} no total
+              {state.gateways.some(g => g.balanceUpdatedAt) && (
+                <span className="inline-flex items-center gap-1 ml-3 text-[10px] text-emerald-400/60">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Ao vivo
+                </span>
+              )}
             </p>
           </div>
-          <button onClick={() => setShowAdd(!showAdd)}
+          <div className="flex items-center gap-2">
+            <button onClick={() => setPolling(!polling)}
+              className={`p-2 rounded-xl text-xs transition-all border ${polling ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-white/[0.04] text-[#52525b] border-white/[0.08]'}`}
+              title={polling ? 'Saldos atualizando em tempo real' : 'Atualização pausada'}>
+              <RefreshCw size={14} className={polling ? 'animate-spin' : ''} style={{ animationDuration: '3s' }} />
+            </button>
+            <button onClick={() => setShowAdd(!showAdd)}
             className={`px-5 py-2.5 text-sm font-semibold rounded-xl flex items-center gap-2 transition-all ${
               showAdd ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-[var(--brand-500)] hover:bg-[var(--brand-600)] text-white'
             }`}>
             <Plus size={16} /> {showAdd ? 'Cancelar' : 'Novo Gateway'}
           </button>
+          </div>
         </div>
 
         {showAdd && (
