@@ -21,7 +21,7 @@ const initialState = {
   ],
   gateways: [
     { name: 'PagCi Wallet', connected: false, type: 'PIX' },
-    { name: 'PushinPay', connected: true, type: 'PIX' },
+    { name: 'PushinPay', connected: false, type: 'PIX' },
     { name: 'SyncPay', connected: false, type: 'PIX' },
     { name: 'Oasyfy', connected: false, type: 'PIX' },
     { name: 'VizzionPay', connected: false, type: 'PIX' },
