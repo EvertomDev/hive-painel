@@ -100,7 +100,6 @@ function GatewayCard({ gateway, index, expanded, setExpanded, editFields, handle
   const initials = GATEWAY_LOGO_STYLES[gateway.name] || gateway.name.substring(0, 2).toUpperCase();
   const webhookUrl = `${webhookBase}/${gateway.name.toLowerCase().replace(/\s+/g, '')}`;
   const [copied, setCopied] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [connecting, setConnecting] = useState(false);
 
   function copyWebhook() {
@@ -109,18 +108,22 @@ function GatewayCard({ gateway, index, expanded, setExpanded, editFields, handle
     setTimeout(() => setCopied(false), 2000);
   }
 
+  const [saveOk, setSaveOk] = useState(false);
+
   function handleSave() {
     handleSaveConfig(gateway.name);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaveOk(true);
+    setTimeout(() => setSaveOk(false), 2000);
   }
 
-  function handleConnect() {
+  async function handleConnect() {
     setConnecting(true);
-    setTimeout(() => {
-      handleToggle(gateway);
-      setConnecting(false);
-    }, 600);
+    handleSaveConfig(gateway.name);
+    await new Promise(r => setTimeout(r, 400));
+    handleToggle(gateway);
+    await new Promise(r => setTimeout(r, 300));
+    await handleConsultBalance(gateway.name);
+    setConnecting(false);
   }
 
   const hasConfig = editFields[gateway.name]?.saved;
@@ -147,18 +150,11 @@ function GatewayCard({ gateway, index, expanded, setExpanded, editFields, handle
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {gateway.connected && (
-              gateway.balance !== undefined ? (
-                <div className="text-right">
-                  <div className="text-xs font-bold text-white">R$ {gateway.balance.toFixed(2)}</div>
-                  <div className="text-[9px] text-[#52525b]">saldo</div>
-                </div>
-              ) : (
-                <button onClick={() => handleConsultBalance(gateway.name)} disabled={consulting?.[gateway.name]}
-                  className="text-[10px] px-2 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-[#52525b] hover:text-white transition-colors disabled:opacity-50">
-                  {consulting?.[gateway.name] ? '...' : 'Consultar'}
-                </button>
-              )
+            {gateway.connected && gateway.balance !== undefined && (
+              <div className="text-right">
+                <div className="text-xs font-bold text-white">R$ {gateway.balance.toFixed(2)}</div>
+                <div className="text-[9px] text-[#52525b]">saldo</div>
+              </div>
             )}
             <div className="flex items-center gap-1">
               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
@@ -205,17 +201,17 @@ function GatewayCard({ gateway, index, expanded, setExpanded, editFields, handle
             <div className="flex gap-2">
               <button onClick={handleSave}
                 className={`flex-1 px-4 py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1 ${
-                  saved
+                  saveOk
                     ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20'
-                    : 'bg-[var(--brand-500)] hover:bg-[var(--brand-600)] text-white'
+                    : 'bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/[0.08]'
                 }`}>
-                {saved ? <><CheckCheck size={13} /> Salvo!</> : <><CheckCheck size={13} /> Salvar</>}
+                {saveOk ? <><CheckCheck size={13} /> Salvo</> : <><CheckCheck size={13} /> Salvar</>}
               </button>
               <button onClick={handleConnect} disabled={connecting}
                 className={`flex-1 px-4 py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1 ${
                   gateway.connected
                     ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
-                    : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20'
+                    : 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/20'
                 } disabled:opacity-50 disabled:cursor-wait`}>
                 {connecting ? 'Conectando...' : gateway.connected ? <><X size={13} /> Desconectar</> : <><Zap size={13} /> Conectar</>}
               </button>
