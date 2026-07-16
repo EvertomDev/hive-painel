@@ -64,6 +64,32 @@ const GATEWAY_LOGO_STYLES = {
   'Stripe': 'ST',
 };
 
+const GATEWAY_LOGOS = {
+  'PagCi Wallet': '/gateways/pagciwallet.jpeg',
+  'PushinPay': '/gateways/pushinpay.png',
+  'SyncPay': '/gateways/syncpay.png',
+  'Oasyfy': '/gateways/oasyfy.png',
+  'VizzionPay': '/gateways/vizzionpay.png',
+  'OmegaPay': '/gateways/omegapay.png',
+  'SigiloPay': '/gateways/sigilopay.png',
+  'Paradise': '/gateways/paradise.png',
+  'HooPay': '/gateways/hoopay.png',
+  'AmploPay': '/gateways/amplopay.png',
+  'TriboPay': '/gateways/tribopay.png',
+  'AtomoPay': '/gateways/atomopay.jpeg',
+  'IronPay': '/gateways/ironpay.jpeg',
+  'WiinPay': '/gateways/wiinpay.png',
+  'NXGate': '/gateways/nxgate.png',
+  'AxenPay': '/gateways/axenpay.png',
+  'VeoPag': '/gateways/veopag.svg',
+  'Mercado Pago PIX': '/gateways/mercadopago.png',
+  'Mercado Pago Cartão': '/gateways/mercadopago.png',
+  'PixGateIP': '/gateways/pixgateip.jpeg',
+  'Duck': '/gateways/duck.jpeg',
+  'Bestfy': '/gateways/bestfy.png',
+  'Stripe': '/gateways/stripe.png',
+};
+
 const GATEWAY_SUGGESTIONS = Object.keys(GATEWAY_BRANDS);
 
 function getFieldLabel(key) {
@@ -98,6 +124,7 @@ function GatewayCard({ gateway, index, expanded, setExpanded, editFields, handle
   const fields = getGatewayFieldKeys(gateway.name);
   const color = GATEWAY_BRANDS[gateway.name] || '#3B82F6';
   const initials = GATEWAY_LOGO_STYLES[gateway.name] || gateway.name.substring(0, 2).toUpperCase();
+  const logo = GATEWAY_LOGOS[gateway.name];
   const webhookUrl = `${webhookBase}/${gateway.name.toLowerCase().replace(/\s+/g, '')}`;
   const [copied, setCopied] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -125,9 +152,13 @@ function GatewayCard({ gateway, index, expanded, setExpanded, editFields, handle
       <GlassCard className={`p-5 transition-all duration-300 ${gateway.connected ? 'ring-1 ring-[var(--brand-500)]/30' : ''}`}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-lg" style={{ backgroundColor: color }}>
-              {initials}
-            </div>
+            {logo ? (
+              <img src={logo} alt={gateway.name} className="w-11 h-11 rounded-xl object-cover shadow-lg" />
+            ) : (
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-lg" style={{ backgroundColor: color }}>
+                {initials}
+              </div>
+            )}
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 {gateway.name}
